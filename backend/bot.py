@@ -1,20 +1,24 @@
 import os
 from pathlib import Path
 
+import asyncio
+
 import discord
-from discord import app_commands
-from discord.ext import commands
+from discord.ext import commands, tasks
 from dotenv import load_dotenv
 
 from app.database import SessionLocal
 from app.models import ClanSession, Members
+from app.services.war_tracking import sync_war_data_once
 
 load_dotenv(Path(__file__).resolve().parent / ".env")
 
 DISCORD_BOT_TOKEN = os.getenv("DISCORD_BOT_TOKEN")
+WAR_SYNC_INTERVAL_MINUTES = 5
 
 intents = discord.Intents.default()
 bot = commands.Bot(command_prefix="!", intents=intents)
+commands_synced = False
 
 
 def load_warstats_snapshot():
@@ -67,10 +71,34 @@ def build_warstats_message():
     return "\n".join(lines)
 
 
+@tasks.loop(minutes=WAR_SYNC_INTERVAL_MINUTES)
+async def war_data_sync_loop():
+    try:
+        result = await asyncio.to_thread(sync_war_data_once)
+        print(f"War-Daten synchronisiert: {result}")
+    except Exception as exc:
+        print(f"Fehler beim periodischen War-Daten-Sync: {exc}")
+
+
+@war_data_sync_loop.before_loop
+async def before_war_data_sync_loop():
+    await bot.wait_until_ready()
+
+
 @bot.event
 async def on_ready():
-    synced = await bot.tree.sync()
-    print(f"Bot ist online als {bot.user} - {len(synced)} Slash-Commands synchronisiert.")
+    global commands_synced
+
+    if not commands_synced:
+        synced = await bot.tree.sync()
+        commands_synced = True
+        print(f"Bot ist online als {bot.user} - {len(synced)} Slash-Commands synchronisiert.")
+    else:
+        print(f"Bot ist online als {bot.user}.")
+
+    if not war_data_sync_loop.is_running():
+        war_data_sync_loop.start()
+        print(f"Periodischer War-Daten-Sync gestartet ({WAR_SYNC_INTERVAL_MINUTES} Minuten).")
 
 
 @bot.tree.command(name="ping", description="Prüft, ob der Bot erreichbar ist.")
@@ -80,8 +108,18 @@ async def ping(interaction: discord.Interaction):
 
 @bot.tree.command(name="warstats", description="Zeigt den aktuellen Kriegsstand aus der lokalen Datenbank.")
 async def warstats(interaction: discord.Interaction):
-    message = build_warstats_message()
-    await interaction.response.send_message(message)
+    await interaction.response.defer(thinking=True)
+
+    try:
+        await asyncio.to_thread(sync_war_data_once)
+        message = build_warstats_message()
+    except Exception as exc:
+        await interaction.followup.send(
+            f"War-Daten konnten gerade nicht aktualisiert werden: {exc}"
+        )
+        return
+
+    await interaction.followup.send(message)
 
 
 def main():
