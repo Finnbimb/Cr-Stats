@@ -1,0 +1,12 @@
+{
+  "python.defaultInterpreterPath": "${workspaceFolder}/backend/venv/bin/python",
+  "files.watcherExclude": {
+  "**/venv/**": true,
+  "**/__pycache__/**": true
+  },
+  "python.terminal.activateEnvironment": true,
+  "python.analysis.extraPaths": [
+    "${workspaceFolder}/backend"
+  ]
+  
+}

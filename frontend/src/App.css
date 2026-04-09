@@ -1,0 +1,150 @@
+.app-shell {
+  max-width: 920px;
+  margin: 0 auto;
+  padding: 2rem 1rem 3rem;
+}
+
+.auth-layout {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+}
+
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.nav-actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.nav-actions a,
+.nav-actions button,
+.inline-link {
+  width: fit-content;
+  border: 1px solid #cbd5e1;
+  background: #f8fafc;
+  color: #111827;
+  border-radius: 8px;
+  padding: 0.65rem 1rem;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.nav-actions .active {
+  background: #2563eb;
+  color: #ffffff;
+}
+
+.panel {
+  background: #ffffff;
+  border: 1px solid #d1d5db;
+  border-radius: 12px;
+  padding: 1rem;
+}
+
+.auth-panel {
+  width: min(100%, 420px);
+}
+
+.page-stack {
+  display: grid;
+  gap: 1rem;
+}
+
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1rem;
+}
+
+.stat-card {
+  min-height: 120px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.stat-label,
+.eyebrow,
+.hint {
+  color: #6b7280;
+}
+
+.eyebrow {
+  margin: 0 0 0.25rem;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.profile-info {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.form-stack {
+  display: grid;
+  gap: 1rem;
+}
+
+.form-field {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.message {
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.message.error {
+  color: #b91c1c;
+}
+
+.message.success {
+  color: #15803d;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+button {
+  width: fit-content;
+}
+
+button:disabled {
+  cursor: wait;
+  opacity: 0.7;
+}
+
+input {
+  width: 100%;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 0.65rem 0.75rem;
+  background: #ffffff;
+}
+
+h1,
+h2,
+p {
+  margin-top: 0;
+}
+
+@media (max-width: 700px) {
+  .topbar {
+    align-items: start;
+    flex-direction: column;
+  }
+}
