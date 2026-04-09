@@ -51,7 +51,8 @@ def build_warstats_message():
 
     lines = [
         f"Clan: {clan_session.clan_tag}",
-        f"Section Index: {clan_session.section_index}",
+        # clan session session index + 1 
+        f"Woche: {clan_session.section_index + 1}",
         f"Phase: {clan_session.period_type}",
         f"Aktive Mitglieder: {played_count}/{len(members)}",
         f"Gespielte Spiele insgesamt: {total_games}",
