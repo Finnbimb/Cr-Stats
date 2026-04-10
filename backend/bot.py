@@ -89,7 +89,47 @@ def build_warstats_message():
     return "\n".join(lines)
 
 
-async def post_or_update_channel_message(content: str, channel_id: int):
+def build_rules_embed():
+    embed = discord.Embed(
+        title="Clan- & Server-Regeln",
+        description="Damit alles sauber und entspannt läuft, gelten diese Regeln für alle Mitglieder.",
+        color=discord.Color.gold(),
+    )
+    embed.add_field(
+        name="1. Aktivität ist Pflicht",
+        value="War-Angriffe werden erwartet. Wer dauerhaft nichts macht, fällt auf.",
+        inline=False,
+    )
+    embed.add_field(
+        name="2. Kein Spam / kein Müll",
+        value="Keine sinnlosen Nachrichten, kein Nerven, kein unnötiges Vollschreiben des Chats.",
+        inline=False,
+    )
+    embed.add_field(
+        name="3. Respektvoll bleiben",
+        value="Kein toxisches Verhalten, keine Beleidigungen, kein unnötiger Stress.",
+        inline=False,
+    )
+    embed.add_field(
+        name="4. Discord gehört dazu",
+        value="Wichtige Infos, Rankings und Aktivität laufen hier. Wer im Clan bleiben will, sollte hier mitlesen.",
+        inline=False,
+    )
+    embed.add_field(
+        name="Wichtig",
+        value="Wer aktiv am Krieg und Chat teilnimmt, wird bevorzugt. Wer dauerhaft inaktiv ist oder stört, kann entfernt werden.",
+        inline=False,
+    )
+    embed.set_footer(text="CrStats Bot")
+    return embed
+
+
+async def post_or_update_channel_message(
+    channel_id: int,
+    *,
+    content: str | None = None,
+    embed: discord.Embed | None = None,
+):
     if bot.user is None:
         raise RuntimeError("Bot is not ready yet.")
 
@@ -106,7 +146,7 @@ async def post_or_update_channel_message(content: str, channel_id: int):
     if existing_message_id:
         try:
             existing_message = await channel.fetch_message(existing_message_id)
-            await existing_message.edit(content=content)
+            await existing_message.edit(content=content, embed=embed)
             return existing_message
         except discord.NotFound:
             managed_messages.pop(str(channel_id), None)
@@ -116,12 +156,12 @@ async def post_or_update_channel_message(content: str, channel_id: int):
     # update the most recent bot-authored message instead of sending a duplicate.
     async for existing_message in channel.history(limit=25):
         if existing_message.author.id == bot.user.id:
-            await existing_message.edit(content=content)
+            await existing_message.edit(content=content, embed=embed)
             managed_messages[str(channel_id)] = existing_message.id
             save_managed_messages(managed_messages)
             return existing_message
 
-    new_message = await channel.send(content)
+    new_message = await channel.send(content=content, embed=embed)
     managed_messages[str(channel_id)] = new_message.id
     save_managed_messages(managed_messages)
     return new_message
@@ -199,7 +239,10 @@ async def publish_message(
 
     try:
         target_channel_id = int(channel_id.strip())
-        target_message = await post_or_update_channel_message(content, target_channel_id)
+        target_message = await post_or_update_channel_message(
+            target_channel_id,
+            content=content,
+        )
     except ValueError:
         await interaction.followup.send(
             "Die Channel-ID muss eine Zahl sein.",
@@ -215,6 +258,42 @@ async def publish_message(
 
     await interaction.followup.send(
         f"Nachricht in <#{target_message.channel.id}> veröffentlicht oder aktualisiert.",
+        ephemeral=True,
+    )
+
+
+@app_commands.dm_only()
+@bot.tree.command(
+    name="publish_rules",
+    description="Postet oder aktualisiert die Regeln als formatiertes Embed in einem Zielchannel."
+)
+async def publish_rules(
+    interaction: discord.Interaction,
+    channel_id: str,
+):
+    await interaction.response.defer(thinking=True, ephemeral=True)
+
+    try:
+        target_channel_id = int(channel_id.strip())
+        target_message = await post_or_update_channel_message(
+            target_channel_id,
+            embed=build_rules_embed(),
+        )
+    except ValueError:
+        await interaction.followup.send(
+            "Die Channel-ID muss eine Zahl sein.",
+            ephemeral=True,
+        )
+        return
+    except Exception as exc:
+        await interaction.followup.send(
+            f"Die Regeln konnten nicht veröffentlicht werden: {exc}",
+            ephemeral=True,
+        )
+        return
+
+    await interaction.followup.send(
+        f"Regeln in <#{target_message.channel.id}> veröffentlicht oder aktualisiert.",
         ephemeral=True,
     )
 
