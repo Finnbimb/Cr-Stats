@@ -1,4 +1,5 @@
 import os
+import json
 from pathlib import Path
 
 import asyncio
@@ -15,10 +16,25 @@ load_dotenv(Path(__file__).resolve().parent / ".env")
 
 DISCORD_BOT_TOKEN = os.getenv("DISCORD_BOT_TOKEN")
 WAR_SYNC_INTERVAL_MINUTES = 5
+MANAGED_MESSAGES_PATH = Path(__file__).resolve().parent / ".managed_messages.json"
 
 intents = discord.Intents.default()
 bot = commands.Bot(command_prefix="!", intents=intents)
 commands_synced = False
+
+
+def load_managed_messages():
+    if not MANAGED_MESSAGES_PATH.exists():
+        return {}
+
+    try:
+        return json.loads(MANAGED_MESSAGES_PATH.read_text())
+    except (json.JSONDecodeError, OSError):
+        return {}
+
+
+def save_managed_messages(managed_messages: dict):
+    MANAGED_MESSAGES_PATH.write_text(json.dumps(managed_messages))
 
 
 def load_warstats_snapshot():
@@ -72,6 +88,44 @@ def build_warstats_message():
     return "\n".join(lines)
 
 
+async def post_or_update_channel_message(content: str, channel_id: int):
+    if bot.user is None:
+        raise RuntimeError("Bot is not ready yet.")
+
+    channel = bot.get_channel(channel_id)
+    if channel is None:
+        channel = await bot.fetch_channel(channel_id)
+
+    if not isinstance(channel, (discord.TextChannel, discord.Thread)):
+        raise TypeError("Channel must be a text channel or thread.")
+
+    managed_messages = load_managed_messages()
+    existing_message_id = managed_messages.get(str(channel_id))
+
+    if existing_message_id:
+        try:
+            existing_message = await channel.fetch_message(existing_message_id)
+            await existing_message.edit(content=content)
+            return existing_message
+        except discord.NotFound:
+            managed_messages.pop(str(channel_id), None)
+            save_managed_messages(managed_messages)
+
+    # Fallback: if the bot already posted something in this channel before,
+    # update the most recent bot-authored message instead of sending a duplicate.
+    async for existing_message in channel.history(limit=25):
+        if existing_message.author.id == bot.user.id:
+            await existing_message.edit(content=content)
+            managed_messages[str(channel_id)] = existing_message.id
+            save_managed_messages(managed_messages)
+            return existing_message
+
+    new_message = await channel.send(content)
+    managed_messages[str(channel_id)] = new_message.id
+    save_managed_messages(managed_messages)
+    return new_message
+
+
 @tasks.loop(minutes=WAR_SYNC_INTERVAL_MINUTES)
 async def war_data_sync_loop():
     try:
@@ -101,12 +155,12 @@ async def on_ready():
         war_data_sync_loop.start()
         print(f"Periodischer War-Daten-Sync gestartet ({WAR_SYNC_INTERVAL_MINUTES} Minuten).")
 
-
+# COMMAND FÜR PING - PRÜFT, OB DER BOT REAGIERT
 @bot.tree.command(name="ping", description="Prüft, ob der Bot erreichbar ist.")
 async def ping(interaction: discord.Interaction):
     await interaction.response.send_message("Pong")
 
-
+# COMMAND FÜR WARSTATS - ZEIGT AKTUELLEN KRIEGSSTAND AUS DER DATENBANK
 @bot.tree.command(name="warstats", description="Zeigt den aktuellen Kriegsstand aus der lokalen Datenbank.")
 async def warstats(interaction: discord.Interaction):
     await interaction.response.defer(thinking=True)
@@ -121,6 +175,46 @@ async def warstats(interaction: discord.Interaction):
         return
 
     await interaction.followup.send(message)
+
+# COMMAND FÜR BOT DM - KANN NACHRICHT POSTEN
+@bot.tree.command(
+    name="publish_message",
+    description="Postet oder aktualisiert eine Bot-Nachricht in einem Zielchannel."
+)
+async def publish_message(
+    interaction: discord.Interaction,
+    channel_id: str,
+    content: str,
+):
+    await interaction.response.defer(thinking=True, ephemeral=True)
+
+    if interaction.guild is not None:
+        await interaction.followup.send(
+            "Diesen Command bitte per DM an den Bot benutzen.",
+            ephemeral=True,
+        )
+        return
+
+    try:
+        target_channel_id = int(channel_id.strip())
+        target_message = await post_or_update_channel_message(content, target_channel_id)
+    except ValueError:
+        await interaction.followup.send(
+            "Die Channel-ID muss eine Zahl sein.",
+            ephemeral=True,
+        )
+        return
+    except Exception as exc:
+        await interaction.followup.send(
+            f"Die Nachricht konnte nicht veröffentlicht werden: {exc}",
+            ephemeral=True,
+        )
+        return
+
+    await interaction.followup.send(
+        f"Nachricht in <#{target_message.channel.id}> veröffentlicht oder aktualisiert.",
+        ephemeral=True,
+    )
 
 
 def main():
