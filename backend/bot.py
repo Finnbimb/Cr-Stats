@@ -1,6 +1,7 @@
 import os
 import json
 from pathlib import Path
+from discord import app_commands
 
 import asyncio
 
@@ -176,7 +177,8 @@ async def warstats(interaction: discord.Interaction):
 
     await interaction.followup.send(message)
 
-# COMMAND FÜR BOT DM - KANN NACHRICHT POSTEN
+# COMMAND FÜR BOT DM - KANN NACHRICHT POSTEN (DM ONLY)
+@app_commands.dm_only()
 @bot.tree.command(
     name="publish_message",
     description="Postet oder aktualisiert eine Bot-Nachricht in einem Zielchannel."
