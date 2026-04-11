@@ -80,7 +80,7 @@ def fetch_location_name(location_id: int):
 
     return name
 
-
+# ONLY USED FOR FRONTEND, BOT HAS ITS OWN FUNCTION 
 def fetch_user_clan_ranking(user: User):
     try:
         response = requests.get(
@@ -99,6 +99,25 @@ def fetch_user_clan_ranking(user: User):
     clans = response.json().get("items", [])
     return next((clan for clan in clans if clan.get("tag") == user.clan_tag), None)
 
+def fetch_clan_ranking_germany():
+    clan_tag = "%238R8U0VQG"  # URL-encoded clan tag for "#8R8U0VQG"
+    location_id = 57000000  # Germany location ID
+    try:
+        response = requests.get(
+            f"https://api.clashroyale.com/v1/locations/{location_id}/rankings/clans",
+            headers=get_cr_api_headers(),
+            timeout=10,
+        )
+    except requests.RequestException as exc:
+        raise HTTPException(
+            status_code=502,
+            detail="Clan is not ranked in Germany or error fetching clan ranking!",
+        ) from exc
+        
+    raise_for_clash_api_error(response, "Failed to load clan ranking from Clash Royale API")
+
+    clans = response.json().get("items", [])
+    return next((clan for clan in clans if clan.get("tag") == clan_tag), None)
 
 def fetch_locations():
     try:
@@ -147,7 +166,6 @@ def get_current_riverrace():
             return None
 
         # everything of our clan  + sectionIndex(day), periodtype(training, war), state
-        
         return {
             **own_clan,
             "sectionIndex": response_data.get("sectionIndex"),
