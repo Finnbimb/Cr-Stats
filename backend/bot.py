@@ -366,6 +366,16 @@ async def germany_ranking(interaction: discord.Interaction):
         return
 
     await interaction.followup.send(message)
+    
+@bot.event
+async def on_member_join(member: discord.Member):
+    channel = discord.utils.get(member.guild.text_channels, name="willkommen")
+    if channel:
+        await channel.send(
+            f"👑 Willkommen bei der **Gummibärenbande**, {member.mention}!\n\n"
+            f"📌 Lies die Regeln durch\n"
+            f"🏆 Viel Erfolg auf der Ladder!"
+        )
 
 def main():
     if not DISCORD_BOT_TOKEN:
