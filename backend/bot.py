@@ -88,6 +88,25 @@ def build_warstats_message():
 
     return "\n".join(lines)
 
+def build_games_played_message():
+    clan_session, members = load_warstats_snapshot()
+    
+    if clan_session is None:
+        return "Es gibt noch keinen gespeicherten Clan-Stand in der Datenbank."
+
+    if not members:
+        return "Es gibt noch keine gespeicherten Mitgliederdaten in der Datenbank."
+
+    lines = [
+        f"Gummibärenbande({clan_session.clan_tag}) - Woche {clan_session.section_index + 1} - {clan_session.period_type}",
+        "Mitglieder nach gespielten CW-Spielen:",
+    ]
+    lines.extend(
+        f"- {member.name} ({member.member_tag}): {member.games_played or 0}"
+        for member in members
+    )
+    return "\n".join(lines)
+
 
 def build_rules_embed():
     embed = discord.Embed(
@@ -261,7 +280,7 @@ async def publish_message(
         ephemeral=True,
     )
 
-
+# COMMAND FÜR REGELN - POSTET EIN FESTES EMBED MIT DEN REGELN IN EINEN CHANNEL (DM ONLY)
 @app_commands.dm_only()
 @bot.tree.command(
     name="publish_rules",
@@ -296,8 +315,23 @@ async def publish_rules(
         f"Regeln in <#{target_message.channel.id}> veröffentlicht oder aktualisiert.",
         ephemeral=True,
     )
+    
+@bot.tree.command(name="war_games_played", description="Zeigt die Anzahl gespielter CW-Spiele")
+async def war_games_played(interaction: discord.Interaction):
+    await interaction.response.defer(thinking=True)
 
+    try:
+        await asyncio.to_thread(sync_war_data_once)
+        message = build_games_played_message()
+    except Exception as exc:
+        await interaction.followup.send(
+            f"Die Daten konnten nicht geladen werden: {exc}",
+            ephemeral=True,
+        )
+        return
 
+    await interaction.followup.send(message)
+    
 def main():
     if not DISCORD_BOT_TOKEN:
         raise RuntimeError("DISCORD_BOT_TOKEN is not configured in backend/.env")
