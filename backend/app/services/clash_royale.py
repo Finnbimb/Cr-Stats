@@ -101,7 +101,7 @@ def fetch_user_clan_ranking(user: User):
 
 # USED BY BOT TO FETCH RANKING IN GERMANY LOCATION
 def fetch_clan_ranking_germany():
-    clan_tag = "%238R8U0VQG"  # URL-encoded clan tag for "#8R8U0VQG"
+    clan_tag = "#8R8U0VQG"  # URL-encoded clan tag for "#8R8U0VQG"
     
     # should be "57000094" for Germany, but we fetch all locations to be sure and to have the name for error messages
     locations = fetch_locations()
