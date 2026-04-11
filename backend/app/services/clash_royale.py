@@ -99,12 +99,18 @@ def fetch_user_clan_ranking(user: User):
     clans = response.json().get("items", [])
     return next((clan for clan in clans if clan.get("tag") == user.clan_tag), None)
 
+# USED BY BOT TO FETCH RANKING IN GERMANY LOCATION
 def fetch_clan_ranking_germany():
     clan_tag = "%238R8U0VQG"  # URL-encoded clan tag for "#8R8U0VQG"
-    location_id = 57000000  # Germany location ID
+    
+    # should be "57000094" for Germany, but we fetch all locations to be sure and to have the name for error messages
+    locations = fetch_locations()
+    germany = next((loc for loc in locations if loc["name"] == "Germany"), None)
+    
+    
     try:
         response = requests.get(
-            f"https://api.clashroyale.com/v1/locations/{location_id}/rankings/clans",
+            f"https://api.clashroyale.com/v1/locations/{germany['id']}/rankings/clans",
             headers=get_cr_api_headers(),
             timeout=10,
         )

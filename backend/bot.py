@@ -2,7 +2,7 @@ import os
 import json
 from pathlib import Path
 from discord import app_commands
-
+import time
 import asyncio
 
 import discord
@@ -12,6 +12,7 @@ from dotenv import load_dotenv
 from app.database import SessionLocal
 from app.models import ClanSession, Members
 from app.services.war_tracking import sync_war_data_once
+from app.services.clash_royale import fetch_clan_ranking_germany
 
 load_dotenv(Path(__file__).resolve().parent / ".env")
 
@@ -107,6 +108,18 @@ def build_games_played_message():
     )
     return "\n".join(lines)
 
+def build_germany_ranking_message(clan_data: dict):
+    clan_data = fetch_clan_ranking_germany()
+    
+    if not clan_data:
+        return "Der Clan ist nicht in der Deutschland-Rangliste gelistet oder es ist ein Fehler aufgetreten."
+    
+    lines = [
+        f"Clan: {clan_data.get('name')} ({clan_data.get('tag')})",
+        f"Rang in Deutschland: {clan_data.get('rank')}",
+        f"Mitglieder: {clan_data.get('members')}",
+    ]
+    return "\n".join(lines)
 
 def build_rules_embed():
     embed = discord.Embed(
@@ -332,6 +345,29 @@ async def war_games_played(interaction: discord.Interaction):
 
     await interaction.followup.send(message)
     
+@bot.tree.command(name = "germany_ranking", description="Zeigt die aktuelle Deutschland-Rangliste an")
+async def germany_ranking(interaction: discord.Interaction):
+    await interaction.response.defer(thinking=True)
+
+    try:
+        clan_data = await asyncio.to_thread(fetch_clan_ranking_germany)
+        if not clan_data:
+            await interaction.followup.send(
+                "Der Clan ist nicht in der Deutschland-Rangliste gelistet oder es ist ein Fehler aufgetreten.",
+                ephemeral=True,
+            )
+            return
+
+        message = build_germany_ranking_message(clan_data)
+    except Exception as exc:
+        await interaction.followup.send(
+            f"Die Daten konnten nicht geladen werden: {exc}",
+            ephemeral=True,
+        )
+        return
+
+    await interaction.followup.send(message)
+
 def main():
     if not DISCORD_BOT_TOKEN:
         raise RuntimeError("DISCORD_BOT_TOKEN is not configured in backend/.env")

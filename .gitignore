@@ -2,4 +2,8 @@ backend/.env
 backend/venv/
 backend/frontend/node_modules/
 backend/crstats.db
-
+backend/crstats_server.db
+backend/bot.log
+bot.log
+__pycache__/
+*.py[cod]

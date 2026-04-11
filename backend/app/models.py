@@ -35,14 +35,5 @@ class Members(Base):
     boat_attacks = Column(Integer, nullable=True)
     updated_at = Column(Integer, nullable=True)
     
-class Ranking (Base):
-    __tablename__ = "ranking"
-
-    id = Column(Integer, primary_key=True, index=True)
-    clan_tag = Column(String, index=True, nullable=False)
-    member_tag = Column(String, nullable=False)
-    name = Column(String, nullable=False)
-    ranking_germany = Column(Integer, nullable=True)
-    updated_at = Column(Integer, nullable=True)
     
 
