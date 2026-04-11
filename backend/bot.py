@@ -109,7 +109,6 @@ def build_games_played_message():
     return "\n".join(lines)
 
 def build_germany_ranking_message(clan_data: dict):
-    clan_data = fetch_clan_ranking_germany()
     
     if not clan_data:
         return "Der Clan ist nicht in der Deutschland-Rangliste gelistet oder es ist ein Fehler aufgetreten."
