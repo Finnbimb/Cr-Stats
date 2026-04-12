@@ -27,8 +27,11 @@ ELDER_ROLE_NAME = "Ältester"
 VICE_ROLE_NAME = "Vize"
 WELCOME_CHANNEL_ID = 1492165582563311647
 
+
 intents = discord.Intents.default()
+intents.members = True
 bot = commands.Bot(command_prefix="!", intents=intents)
+
 commands_synced = False
 persistent_views_registered = False
 
@@ -720,7 +723,7 @@ async def register(interaction: discord.Interaction, player_tag: str):
 @bot.event
 async def on_member_join(member: discord.Member):
     channel = member.guild.get_channel(WELCOME_CHANNEL_ID)
-    if channel:
+    if channel: 
         await channel.send(
             f"👑 Willkommen bei der Gummibärenbande, {member.mention}!\n\n"
             f"📌 Lies die Regeln durch\n"
