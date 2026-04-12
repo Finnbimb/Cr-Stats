@@ -386,6 +386,7 @@ async def post_or_update_channel_message(
     content: str | None = None,
     embed: discord.Embed | None = None,
     view: discord.ui.View | None = None,
+    force_new: bool = False,
 ):
     if bot.user is None:
         raise RuntimeError("Bot is not ready yet.")
@@ -400,28 +401,57 @@ async def post_or_update_channel_message(
     managed_messages = load_managed_messages()
     existing_message_id = managed_messages.get(str(channel_id))
 
+    if force_new and existing_message_id:
+        try:
+            existing_message = await channel.fetch_message(existing_message_id)
+            await existing_message.delete()
+        except discord.NotFound:
+            pass
+        except discord.HTTPException:
+            pass
+
+        managed_messages.pop(str(channel_id), None)
+        save_managed_messages(managed_messages)
+        existing_message_id = None
+
     if existing_message_id:
         try:
             existing_message = await channel.fetch_message(existing_message_id)
             await existing_message.edit(content=content, embed=embed, view=view)
-            return existing_message
+            refreshed_message = await channel.fetch_message(existing_message.id)
+            print(
+                f"Managed message updated in channel {channel_id}: "
+                f"components={len(refreshed_message.components)}"
+            )
+            return refreshed_message
         except discord.NotFound:
             managed_messages.pop(str(channel_id), None)
             save_managed_messages(managed_messages)
 
     # Fallback: if the bot already posted something in this channel before,
     # update the most recent bot-authored message instead of sending a duplicate.
-    async for existing_message in channel.history(limit=25):
-        if existing_message.author.id == bot.user.id:
-            await existing_message.edit(content=content, embed=embed, view=view)
-            managed_messages[str(channel_id)] = existing_message.id
-            save_managed_messages(managed_messages)
-            return existing_message
+    if not force_new:
+        async for existing_message in channel.history(limit=25):
+            if existing_message.author.id == bot.user.id:
+                await existing_message.edit(content=content, embed=embed, view=view)
+                managed_messages[str(channel_id)] = existing_message.id
+                save_managed_messages(managed_messages)
+                refreshed_message = await channel.fetch_message(existing_message.id)
+                print(
+                    f"Fallback message updated in channel {channel_id}: "
+                    f"components={len(refreshed_message.components)}"
+                )
+                return refreshed_message
 
     new_message = await channel.send(content=content, embed=embed, view=view)
     managed_messages[str(channel_id)] = new_message.id
     save_managed_messages(managed_messages)
-    return new_message
+    refreshed_message = await channel.fetch_message(new_message.id)
+    print(
+        f"Managed message created in channel {channel_id}: "
+        f"components={len(refreshed_message.components)}"
+    )
+    return refreshed_message
 
 
 @tasks.loop(minutes=WAR_SYNC_INTERVAL_MINUTES)
@@ -553,6 +583,7 @@ async def publish_rules(
             target_channel_id,
             embed=build_rules_embed(),
             view=RulesRoleView(),
+            force_new=True,
         )
     except ValueError:
         await interaction.followup.send(
