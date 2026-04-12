@@ -28,6 +28,7 @@ VICE_ROLE_NAME = "Vize"
 WELCOME_CHANNEL_ID = 1492165582563311647
 
 
+
 intents = discord.Intents.default()
 intents.members = True
 bot = commands.Bot(command_prefix="!", intents=intents)
@@ -722,14 +723,26 @@ async def register(interaction: discord.Interaction, player_tag: str):
     
 @bot.event
 async def on_member_join(member: discord.Member):
+    print(f"[JOIN] Neuer User: {member} ({member.id}) in Guild {member.guild.name} ({member.guild.id})")
+
     channel = member.guild.get_channel(WELCOME_CHANNEL_ID)
-    if channel: 
+    print(f"[JOIN] Welcome channel lookup: {WELCOME_CHANNEL_ID} -> {channel}")
+
+    if channel is None:
+        print("[JOIN] Welcome channel wurde nicht gefunden.")
+        return
+
+    try:
         await channel.send(
             f"👑 Willkommen bei der Gummibärenbande, {member.mention}!\n\n"
             f"📌 Lies die Regeln durch\n"
-            f"🔗 Verknüpfe deinen Clash Royale Account mit `/register <dein Spieler-Tag>` unter `registrieren`\n"
+            f"🔗 Verknüpfe deinen Clash Royale Account mit `/register <dein Spieler-Tag>`\n"
             f"🏆 Viel Erfolg auf der Ladder!"
         )
+        print("[JOIN] Willkommensnachricht erfolgreich gesendet.")
+    except Exception as exc:
+        print(f"[JOIN] Fehler beim Senden der Willkommensnachricht: {exc}")
+
 
 def main():
     if not DISCORD_BOT_TOKEN:
