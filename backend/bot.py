@@ -309,7 +309,7 @@ class RulesRoleView(discord.ui.View):
         super().__init__(timeout=None)
 
     @discord.ui.button(
-        label='Rolle "Unverifiziert" erhalten',
+        label='Akzeptieren ✅',
         style=discord.ButtonStyle.primary,
         custom_id="rules:grant_unverifiziert",
     )
