@@ -8,21 +8,25 @@ import asyncio
 import discord
 from discord.ext import commands, tasks
 from dotenv import load_dotenv
+from fastapi import HTTPException
 
-from app.database import SessionLocal
-from app.models import ClanSession, Members
+from app.database import SessionLocal, init_database
+from app.models import ClanSession, DiscordPlayerLink, Members
 from app.services.war_tracking import sync_war_data_once
-from app.services.clash_royale import fetch_clan_ranking_germany
+from app.services.clash_royale import fetch_clan_ranking_germany, fetch_player_by_tag
 
 load_dotenv(Path(__file__).resolve().parent / ".env")
 
 DISCORD_BOT_TOKEN = os.getenv("DISCORD_BOT_TOKEN")
 WAR_SYNC_INTERVAL_MINUTES = 5
 MANAGED_MESSAGES_PATH = Path(__file__).resolve().parent / ".managed_messages.json"
+RULES_ROLE_NAME = "Unverifiziert"
+CLAN_MEMBER_ROLE_NAME = "Clan Mitglied"
 
 intents = discord.Intents.default()
 bot = commands.Bot(command_prefix="!", intents=intents)
 commands_synced = False
+persistent_views_registered = False
 
 
 def load_managed_messages():
@@ -50,6 +54,60 @@ def load_warstats_snapshot():
         )
 
         return clan_session, members
+    finally:
+        db.close()
+
+
+def save_discord_player_link(
+    *,
+    guild_id: int | None,
+    member: discord.Member | discord.User,
+    player: dict,
+):
+    db = SessionLocal()
+    discord_user_id = str(member.id)
+
+    try:
+        existing_player_link = (
+            db.query(DiscordPlayerLink)
+            .filter(DiscordPlayerLink.player_tag == player["tag"])
+            .first()
+        )
+        if (
+            existing_player_link is not None
+            and existing_player_link.discord_user_id != discord_user_id
+        ):
+            raise ValueError(
+                "Dieser Clash Royale Account ist bereits mit einem anderen Discord-Account verknüpft."
+            )
+
+        link = (
+            db.query(DiscordPlayerLink)
+            .filter(DiscordPlayerLink.discord_user_id == discord_user_id)
+            .first()
+        )
+        created = link is None
+
+        if link is None:
+            link = DiscordPlayerLink(
+                discord_user_id=discord_user_id,
+                player_tag=player["tag"],
+                registered_at=int(time.time()),
+            )
+            db.add(link)
+
+        link.guild_id = str(guild_id) if guild_id is not None else None
+        link.discord_username = str(member)
+        link.discord_display_name = getattr(member, "display_name", None)
+        link.player_tag = player["tag"]
+        link.player_name = player.get("name")
+        link.clan_tag = player.get("clan_tag")
+        link.clan_name = player.get("clan_name")
+        link.registered_at = int(time.time())
+
+        db.commit()
+        db.refresh(link)
+        return link, created
     finally:
         db.close()
 
@@ -120,6 +178,69 @@ def build_germany_ranking_message(clan_data: dict):
     ]
     return "\n".join(lines)
 
+
+async def remove_unverified_role(member: discord.Member):
+    role = discord.utils.get(member.guild.roles, name=RULES_ROLE_NAME)
+    if role is None or role not in member.roles:
+        return
+
+    me = member.guild.me
+    if me is None:
+        me = member.guild.get_member(bot.user.id) if bot.user else None
+
+    if me is None or not me.guild_permissions.manage_roles:
+        return
+
+    if role >= me.top_role:
+        return
+
+    try:
+        await member.remove_roles(role, reason="Clash Royale Registrierung abgeschlossen")
+    except (discord.Forbidden, discord.HTTPException):
+        return
+
+
+def get_manageable_role(guild: discord.Guild, role_name: str):
+    role = discord.utils.get(guild.roles, name=role_name)
+    if role is None:
+        return None, f'Die Rolle "{role_name}" existiert auf diesem Server nicht.'
+
+    me = guild.me
+    if me is None:
+        me = guild.get_member(bot.user.id) if bot.user else None
+
+    if me is None:
+        return None, "Ich konnte meine Bot-Rolle im Server nicht prüfen."
+
+    if not me.guild_permissions.manage_roles:
+        return None, "Mir fehlt die Berechtigung `Rollen verwalten`."
+
+    if role >= me.top_role:
+        return None, (
+            f'Die Rolle "{role_name}" liegt über meiner Bot-Rolle. '
+            "Ziehe die Bot-Rolle in den Servereinstellungen über diese Rolle."
+        )
+
+    return role, None
+
+
+async def grant_clan_member_role(member: discord.Member):
+    role, error = get_manageable_role(member.guild, CLAN_MEMBER_ROLE_NAME)
+    if error:
+        return error
+
+    if role in member.roles:
+        return None
+
+    try:
+        await member.add_roles(role, reason="Clash Royale Registrierung abgeschlossen")
+    except discord.Forbidden:
+        return f'Ich darf die Rolle "{CLAN_MEMBER_ROLE_NAME}" aktuell nicht vergeben.'
+    except discord.HTTPException as exc:
+        return f'Die Rolle "{CLAN_MEMBER_ROLE_NAME}" konnte nicht vergeben werden: {exc}'
+
+    return None
+
 def build_rules_embed():
     embed = discord.Embed(
         title="Clan- & Server-Regeln",
@@ -155,11 +276,102 @@ def build_rules_embed():
     return embed
 
 
+class RulesRoleView(discord.ui.View):
+    def __init__(self):
+        super().__init__(timeout=None)
+
+    @discord.ui.button(
+        label='Rolle "Unverifiziert" erhalten',
+        style=discord.ButtonStyle.primary,
+        custom_id="rules:grant_unverifiziert",
+    )
+    async def grant_unverifiziert_role(
+        self,
+        interaction: discord.Interaction,
+        _: discord.ui.Button,
+    ):
+        if interaction.guild is None:
+            await interaction.response.send_message(
+                "Der Button funktioniert nur auf dem Server.",
+                ephemeral=True,
+            )
+            return
+
+        member = interaction.user
+        if not isinstance(member, discord.Member):
+            await interaction.response.send_message(
+                "Ich konnte dein Server-Mitgliedsprofil nicht laden.",
+                ephemeral=True,
+            )
+            return
+
+        role = discord.utils.get(interaction.guild.roles, name=RULES_ROLE_NAME)
+        if role is None:
+            await interaction.response.send_message(
+                f'Die Rolle "{RULES_ROLE_NAME}" existiert auf diesem Server nicht.',
+                ephemeral=True,
+            )
+            return
+
+        me = interaction.guild.me
+        if me is None:
+            me = interaction.guild.get_member(bot.user.id) if bot.user else None
+
+        if me is None:
+            await interaction.response.send_message(
+                "Ich konnte meine Bot-Rolle im Server nicht prüfen.",
+                ephemeral=True,
+            )
+            return
+
+        if not me.guild_permissions.manage_roles:
+            await interaction.response.send_message(
+                "Mir fehlt die Berechtigung `Rollen verwalten`.",
+                ephemeral=True,
+            )
+            return
+
+        if role >= me.top_role:
+            await interaction.response.send_message(
+                f'Die Rolle "{RULES_ROLE_NAME}" liegt über meiner Bot-Rolle.',
+                ephemeral=True,
+            )
+            return
+
+        if role in member.roles:
+            await interaction.response.send_message(
+                f'Du hast die Rolle "{RULES_ROLE_NAME}" bereits.',
+                ephemeral=True,
+            )
+            return
+
+        try:
+            await member.add_roles(role, reason="Regel-Button im Regelchannel")
+        except discord.Forbidden:
+            await interaction.response.send_message(
+                "Ich darf dir diese Rolle aktuell nicht geben.",
+                ephemeral=True,
+            )
+            return
+        except discord.HTTPException as exc:
+            await interaction.response.send_message(
+                f"Die Rolle konnte nicht vergeben werden: {exc}",
+                ephemeral=True,
+            )
+            return
+
+        await interaction.response.send_message(
+            f'Die Rolle "{RULES_ROLE_NAME}" wurde dir gegeben. Verifiziere dich schnell unter "registieren" und dann kann es losgehen!',
+            ephemeral=True,
+        )
+
+
 async def post_or_update_channel_message(
     channel_id: int,
     *,
     content: str | None = None,
     embed: discord.Embed | None = None,
+    view: discord.ui.View | None = None,
 ):
     if bot.user is None:
         raise RuntimeError("Bot is not ready yet.")
@@ -177,7 +389,7 @@ async def post_or_update_channel_message(
     if existing_message_id:
         try:
             existing_message = await channel.fetch_message(existing_message_id)
-            await existing_message.edit(content=content, embed=embed)
+            await existing_message.edit(content=content, embed=embed, view=view)
             return existing_message
         except discord.NotFound:
             managed_messages.pop(str(channel_id), None)
@@ -187,12 +399,12 @@ async def post_or_update_channel_message(
     # update the most recent bot-authored message instead of sending a duplicate.
     async for existing_message in channel.history(limit=25):
         if existing_message.author.id == bot.user.id:
-            await existing_message.edit(content=content, embed=embed)
+            await existing_message.edit(content=content, embed=embed, view=view)
             managed_messages[str(channel_id)] = existing_message.id
             save_managed_messages(managed_messages)
             return existing_message
 
-    new_message = await channel.send(content=content, embed=embed)
+    new_message = await channel.send(content=content, embed=embed, view=view)
     managed_messages[str(channel_id)] = new_message.id
     save_managed_messages(managed_messages)
     return new_message
@@ -214,7 +426,11 @@ async def before_war_data_sync_loop():
 
 @bot.event
 async def on_ready():
-    global commands_synced
+    global commands_synced, persistent_views_registered
+
+    if not persistent_views_registered:
+        bot.add_view(RulesRoleView())
+        persistent_views_registered = True
 
     if not commands_synced:
         synced = await bot.tree.sync()
@@ -309,6 +525,7 @@ async def publish_rules(
         target_message = await post_or_update_channel_message(
             target_channel_id,
             embed=build_rules_embed(),
+            view=RulesRoleView(),
         )
     except ValueError:
         await interaction.followup.send(
@@ -367,13 +584,72 @@ async def germany_ranking(interaction: discord.Interaction):
 
     await interaction.followup.send(message)
     
+@app_commands.guild_only()
+@app_commands.describe(
+    player_tag="Dein Clash Royale Spieler-Tag, z. B. #ABC123"
+)
+@bot.tree.command(name="register", description="Verknüpft deinen Clash Royale Account.")
+async def register(interaction: discord.Interaction, player_tag: str):
+    await interaction.response.defer(thinking=True, ephemeral=True)
+
+    try:
+        player = await asyncio.to_thread(fetch_player_by_tag, player_tag)
+        link, created = await asyncio.to_thread(
+            save_discord_player_link,
+            guild_id=interaction.guild_id,
+            member=interaction.user,
+            player=player,
+        )
+    except HTTPException as exc:
+        detail = exc.detail if isinstance(exc.detail, str) else "Die Daten konnten nicht geladen werden."
+        await interaction.followup.send(detail, ephemeral=True)
+        return
+    except ValueError as exc:
+        await interaction.followup.send(
+            f"Die Daten konnten nicht geladen werden: {exc}",
+            ephemeral=True,
+        )
+        return
+    except Exception as exc:
+        await interaction.followup.send(
+            f"Die Registrierung konnte nicht gespeichert werden: {exc}",
+            ephemeral=True,
+        )
+        return
+
+    role_warning = None
+    if isinstance(interaction.user, discord.Member):
+        role_warning = await grant_clan_member_role(interaction.user)
+        if role_warning is None:
+            await remove_unverified_role(interaction.user)
+
+    message = (
+        f"Der Spieler {link.player_name} ({link.player_tag}) wurde mit deinem Discord-Account verknüpft."
+        if created
+        else f"Deine Verknüpfung wurde auf {link.player_name} ({link.player_tag}) aktualisiert."
+    )
+
+    if role_warning is None:
+        message = (
+            f"{message} Du hast jetzt die Rolle "
+            f'"{CLAN_MEMBER_ROLE_NAME}" und Zugriff auf die freigeschalteten Clan-Bereiche.'
+        )
+    else:
+        message = f"{message} Hinweis zur Rollenvergabe: {role_warning}"
+
+    await interaction.followup.send(message, ephemeral=True)
+
+    
+
+    
 @bot.event
 async def on_member_join(member: discord.Member):
     channel = discord.utils.get(member.guild.text_channels, name="willkommen")
     if channel:
         await channel.send(
-            f"👑 Willkommen bei der **Gummibärenbande**, {member.mention}!\n\n"
+            f"👑 Willkommen bei der Gummibärenbande, {member.mention}!\n\n"
             f"📌 Lies die Regeln durch\n"
+            f"🔗 Verknüpfe deinen Clash Royale Account mit `/register <dein Spieler-Tag>` unter `registrieren`\n"
             f"🏆 Viel Erfolg auf der Ladder!"
         )
 
@@ -381,6 +657,7 @@ def main():
     if not DISCORD_BOT_TOKEN:
         raise RuntimeError("DISCORD_BOT_TOKEN is not configured in backend/.env")
 
+    init_database()
     bot.run(DISCORD_BOT_TOKEN)
 
 

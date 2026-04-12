@@ -59,6 +59,17 @@ def raise_for_clash_api_error(response: requests.Response, fallback_detail: str)
     raise HTTPException(status_code=502, detail=detail)
 
 
+def normalize_player_tag(player_tag: str):
+    tag = player_tag.strip().upper()
+    if not tag:
+        raise HTTPException(status_code=400, detail="Player tag cannot be empty")
+
+    if not tag.startswith("#"):
+        tag = f"#{tag}"
+
+    return tag
+
+
 def fetch_location_name(location_id: int):
     try:
         response = requests.get(
@@ -150,6 +161,53 @@ def fetch_locations():
         for item in data.get("items", [])
         if "id" in item and "name" in item
     ]
+    
+def fetch_player_by_tag(player_tag: str):
+    player_tag = normalize_player_tag(player_tag)
+    encoded_tag = quote(player_tag)
+    
+    try:
+        response = requests.get(
+            f"https://api.clashroyale.com/v1/players/{encoded_tag}",
+            headers=get_cr_api_headers(),
+            timeout=10,
+        )
+    except requests.RequestException as exc:
+        raise HTTPException(
+            status_code=502,
+            detail="Failed to load player from Clash Royale API",
+        ) from exc
+        
+    raise_for_clash_api_error(response, "Failed to load player from Clash Royale API")
+    player_data = response.json()
+    clan_data = player_data.get("clan") or {}
+
+    return {
+        "tag": player_data.get("tag"),
+        "name": player_data.get("name"),
+        "clan_tag": clan_data.get("tag"),
+        "clan_name": clan_data.get("name"),
+    }
+    
+def fetch_current_clan_members():
+    clan_tag = "#8R8U0VQG"
+    encoded_tag = quote(clan_tag)
+    
+    try:
+        response = requests.get(
+            f"https://api.clashroyale.com/v1/clans/{encoded_tag}/members",
+            headers=get_cr_api_headers(),
+            timeout=10,
+        )
+    except requests.RequestException as exc:
+        raise HTTPException(
+            status_code=502,
+            detail="Failed to load clan members from Clash Royale API",
+        ) from exc
+
+    raise_for_clash_api_error(response, "Failed to load clan members from Clash Royale API")
+
+    return response.json().get("items", [])
 
 def get_current_riverrace():
     try:
@@ -189,8 +247,11 @@ def get_current_riverrace():
 def extract_riverrace_info(clan_data: dict):
     if not clan_data:
         return None
+    
+    clan_members = fetch_current_clan_members()
 
     participants = clan_data.get("participants", [])
+    
 
     return {
         "clan_tag": clan_data.get("tag"),
@@ -206,7 +267,7 @@ def extract_riverrace_info(clan_data: dict):
                 "games_played_today": member.get("decksUsedToday", 0),
                 "boat_attacks": member.get("boatAttacks", 0),
             }
-            for member in participants
+            for member in participants if member.get("tag") in {m.get("tag") for m in clan_members}
         ],
     }
         

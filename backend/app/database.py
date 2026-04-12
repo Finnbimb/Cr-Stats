@@ -20,6 +20,11 @@ SessionLocal = sessionmaker(
 Base = declarative_base()
 
 
+def init_database():
+    Base.metadata.create_all(bind=engine)
+    ensure_schema()
+
+
 def ensure_schema():
     with engine.begin() as connection:
         users_table = connection.exec_driver_sql(

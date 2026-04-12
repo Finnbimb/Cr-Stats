@@ -34,6 +34,20 @@ class Members(Base):
     games_played_today = Column(Integer, nullable=True)
     boat_attacks = Column(Integer, nullable=True)
     updated_at = Column(Integer, nullable=True)
-    
-    
 
+
+class DiscordPlayerLink(Base):
+    __tablename__ = "discord_player_links"
+
+    id = Column(Integer, primary_key=True, index=True)
+    guild_id = Column(String, index=True, nullable=True)
+    discord_user_id = Column(String, unique=True, index=True, nullable=False)
+    discord_username = Column(String, nullable=True)
+    discord_display_name = Column(String, nullable=True)
+    player_tag = Column(String, unique=True, index=True, nullable=False)
+    player_name = Column(String, nullable=True)
+    clan_tag = Column(String, nullable=True)
+    clan_name = Column(String, nullable=True)
+    registered_at = Column(Integer, nullable=False)
+    
+    
