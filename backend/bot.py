@@ -1,5 +1,6 @@
 import os
 import json
+import subprocess
 from pathlib import Path
 from discord import app_commands
 import time
@@ -27,6 +28,19 @@ intents = discord.Intents.default()
 bot = commands.Bot(command_prefix="!", intents=intents)
 commands_synced = False
 persistent_views_registered = False
+
+
+def get_git_revision():
+    repo_root = Path(__file__).resolve().parent.parent
+
+    try:
+        return subprocess.check_output(
+            ["git", "rev-parse", "--short", "HEAD"],
+            cwd=repo_root,
+            text=True,
+        ).strip()
+    except (subprocess.SubprocessError, OSError):
+        return "unknown"
 
 
 def load_managed_messages():
@@ -428,6 +442,8 @@ async def before_war_data_sync_loop():
 async def on_ready():
     global commands_synced, persistent_views_registered
 
+    git_revision = get_git_revision()
+
     if not persistent_views_registered:
         bot.add_view(RulesRoleView())
         persistent_views_registered = True
@@ -435,9 +451,12 @@ async def on_ready():
     if not commands_synced:
         synced = await bot.tree.sync()
         commands_synced = True
-        print(f"Bot ist online als {bot.user} - {len(synced)} Slash-Commands synchronisiert.")
+        print(
+            f"Bot ist online als {bot.user} - Version {git_revision} - "
+            f"{len(synced)} Slash-Commands synchronisiert."
+        )
     else:
-        print(f"Bot ist online als {bot.user}.")
+        print(f"Bot ist online als {bot.user} - Version {git_revision}.")
 
     if not war_data_sync_loop.is_running():
         war_data_sync_loop.start()
@@ -447,6 +466,14 @@ async def on_ready():
 @bot.tree.command(name="ping", description="Prüft, ob der Bot erreichbar ist.")
 async def ping(interaction: discord.Interaction):
     await interaction.response.send_message("Pong")
+
+
+@bot.tree.command(name="bot_version", description="Zeigt die aktuell laufende Bot-Version an.")
+async def bot_version(interaction: discord.Interaction):
+    await interaction.response.send_message(
+        f"Aktuelle Bot-Version: `{get_git_revision()}`",
+        ephemeral=True,
+    )
 
 # COMMAND FÜR WARSTATS - ZEIGT AKTUELLEN KRIEGSSTAND AUS DER DATENBANK
 @bot.tree.command(name="warstats", description="Zeigt den aktuellen Kriegsstand aus der lokalen Datenbank.")
