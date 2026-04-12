@@ -23,6 +23,8 @@ WAR_SYNC_INTERVAL_MINUTES = 5
 MANAGED_MESSAGES_PATH = Path(__file__).resolve().parent / ".managed_messages.json"
 RULES_ROLE_NAME = "Unverifiziert"
 CLAN_MEMBER_ROLE_NAME = "Clan Mitglied"
+ELDER_ROLE_NAME = "Ältester"
+VICE_ROLE_NAME = "Vize"
 
 intents = discord.Intents.default()
 bot = commands.Bot(command_prefix="!", intents=intents)
@@ -315,6 +317,20 @@ class RulesRoleView(discord.ui.View):
         if not isinstance(member, discord.Member):
             await interaction.response.send_message(
                 "Ich konnte dein Server-Mitgliedsprofil nicht laden.",
+                ephemeral=True,
+            )
+            return
+
+        blocked_role_names = {
+            RULES_ROLE_NAME,
+            CLAN_MEMBER_ROLE_NAME,
+            ELDER_ROLE_NAME,
+            VICE_ROLE_NAME,
+        }
+        blocked_roles = [role.name for role in member.roles if role.name in blocked_role_names]
+        if blocked_roles:
+            await interaction.response.send_message(
+                "Du bist bereits im Registrierungs- oder Mitgliederstatus und kannst diesen Button nicht erneut verwenden.",
                 ephemeral=True,
             )
             return
