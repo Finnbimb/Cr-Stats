@@ -25,6 +25,7 @@ RULES_ROLE_NAME = "Unverifiziert"
 CLAN_MEMBER_ROLE_NAME = "Clan Mitglied"
 ELDER_ROLE_NAME = "Ältester"
 VICE_ROLE_NAME = "Vize"
+WELCOME_CHANNEL_ID = 1492165582563311647
 
 intents = discord.Intents.default()
 bot = commands.Bot(command_prefix="!", intents=intents)
@@ -718,7 +719,7 @@ async def register(interaction: discord.Interaction, player_tag: str):
     
 @bot.event
 async def on_member_join(member: discord.Member):
-    channel = discord.utils.get(member.guild.text_channels, name="willkommen")
+    channel = member.guild.get_channel(WELCOME_CHANNEL_ID)
     if channel:
         await channel.send(
             f"👑 Willkommen bei der Gummibärenbande, {member.mention}!\n\n"
