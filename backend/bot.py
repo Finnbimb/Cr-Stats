@@ -245,7 +245,14 @@ def get_manageable_role(guild: discord.Guild, role_name: str):
     return role, None
 
 
+def member_has_any_role(member: discord.Member, role_names: set[str]):
+    return any(role.name in role_names for role in member.roles)
+
+
 async def grant_clan_member_role(member: discord.Member):
+    if member_has_any_role(member, {CLAN_MEMBER_ROLE_NAME, ELDER_ROLE_NAME, VICE_ROLE_NAME}):
+        return None
+
     role, error = get_manageable_role(member.guild, CLAN_MEMBER_ROLE_NAME)
     if error:
         return error
@@ -326,14 +333,10 @@ class RulesRoleView(discord.ui.View):
             )
             return
 
-        blocked_role_names = {
-            RULES_ROLE_NAME,
-            CLAN_MEMBER_ROLE_NAME,
-            ELDER_ROLE_NAME,
-            VICE_ROLE_NAME,
-        }
-        blocked_roles = [role.name for role in member.roles if role.name in blocked_role_names]
-        if blocked_roles:
+        if member_has_any_role(
+            member,
+            {RULES_ROLE_NAME, CLAN_MEMBER_ROLE_NAME, ELDER_ROLE_NAME, VICE_ROLE_NAME},
+        ):
             await interaction.response.send_message(
                 "Du bist bereits im Registrierungs- oder Mitgliederstatus und kannst diesen Button nicht erneut verwenden.",
                 ephemeral=True,
@@ -697,10 +700,16 @@ async def register(interaction: discord.Interaction, player_tag: str):
         return
 
     role_warning = None
+    granted_clan_member_role = False
     if isinstance(interaction.user, discord.Member):
+        already_ranked = member_has_any_role(
+            interaction.user,
+            {CLAN_MEMBER_ROLE_NAME, ELDER_ROLE_NAME, VICE_ROLE_NAME},
+        )
         role_warning = await grant_clan_member_role(interaction.user)
         if role_warning is None:
             await remove_unverified_role(interaction.user)
+            granted_clan_member_role = not already_ranked
 
     message = (
         f"Der Spieler {link.player_name} ({link.player_tag}) wurde mit deinem Discord-Account verknüpft."
@@ -709,10 +718,13 @@ async def register(interaction: discord.Interaction, player_tag: str):
     )
 
     if role_warning is None:
-        message = (
-            f"{message} Du hast jetzt die Rolle "
-            f'"{CLAN_MEMBER_ROLE_NAME}" und Zugriff auf die freigeschalteten Clan-Bereiche.'
-        )
+        if granted_clan_member_role:
+            message = (
+                f"{message} Du hast jetzt die Rolle "
+                f'"{CLAN_MEMBER_ROLE_NAME}" und Zugriff auf die freigeschalteten Clan-Bereiche.'
+            )
+        else:
+            message = f"{message} Deine bestehenden Server-Rollen bleiben unverändert."
     else:
         message = f"{message} Hinweis zur Rollenvergabe: {role_warning}"
 
