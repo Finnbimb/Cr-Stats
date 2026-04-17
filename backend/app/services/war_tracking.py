@@ -42,10 +42,12 @@ def check_section_index(riverrace_info: dict):
         }
 
     if current_section_index != last_section_index:
+        previous_section_index = last_section_index
+        last_section_index = current_section_index
         return {
             "status": "section_changed",
             "section_changed": True,
-            "previous_section_index": last_section_index,
+            "previous_section_index": previous_section_index,
             "current_section_index": current_section_index,
         }
 
@@ -58,16 +60,16 @@ def check_section_index(riverrace_info: dict):
 
 
 def sync_war_data_once(clan_data: dict | None = None):
-    clan_data = get_current_riverrace()
+    if clan_data is None:
+        clan_data = get_current_riverrace()
+
     riverrace_info = extract_riverrace_info(clan_data)
-    
+
     section_check = check_section_index(riverrace_info)
 
-    if section_check["section_changed"]:
-        return section_check
+    if riverrace_info:
+        update_database(riverrace_info)
 
-    update_database(riverrace_info)
-    
     return section_check
 
 async def poll_war_data_loop():
@@ -86,7 +88,7 @@ def update_database(riverrace_info: dict):
 
     db = SessionLocal()
     try:
-        clan_tag = "#8R8U0VQG"
+        clan_tag = riverrace_info.get("clan_tag") or "#8R8U0VQG"
         timestamp = int(time())
 
         db.query(ClanSession).filter(ClanSession.clan_tag == clan_tag).delete()
@@ -110,7 +112,7 @@ def update_database(riverrace_info: dict):
                 boat_attacks=member["boat_attacks"],
                 updated_at=timestamp,
             )
-            for member in riverrace_info["members"]
+            for member in riverrace_info.get("members", [])
         ]
 
         db.add_all(member_rows)
