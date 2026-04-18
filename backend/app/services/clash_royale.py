@@ -6,6 +6,9 @@ from app.models import User
 
 from urllib.parse import quote
 
+OUR_CLAN_TAG = "#8R8U0VQG"
+GERMANY_LOCATION_NAME = "Germany"
+
 
 def get_cr_api_headers():
     cr_api_token = get_cr_api_token()
@@ -110,32 +113,43 @@ def fetch_user_clan_ranking(user: User):
     clans = response.json().get("items", [])
     return next((clan for clan in clans if clan.get("tag") == user.clan_tag), None)
 
-# USED BY BOT TO FETCH RANKING IN GERMANY LOCATION
-def fetch_clan_ranking_germany():
-    clan_tag = "#8R8U0VQG" 
-    
-    # should be "57000094" for Germany, but we fetch all locations to be sure and to have the name for error messages
+def fetch_ranked_clan_for_location(*, ranking_path: str, fallback_detail: str, clan_tag: str = OUR_CLAN_TAG):
     locations = fetch_locations()
-    germany = next((loc for loc in locations if loc["name"] == "Germany"), None)
+    germany = next((loc for loc in locations if loc["name"] == GERMANY_LOCATION_NAME), None)
     if not germany:
         return None
-    
+
     try:
         response = requests.get(
-            f"https://api.clashroyale.com/v1/locations/{germany['id']}/rankings/clans",
+            f"https://api.clashroyale.com/v1/locations/{germany['id']}/{ranking_path}",
             headers=get_cr_api_headers(),
             timeout=10,
         )
     except requests.RequestException as exc:
         raise HTTPException(
             status_code=502,
-            detail="Clan is not ranked in Germany or error fetching clan ranking!",
+            detail=fallback_detail,
         ) from exc
-        
-    raise_for_clash_api_error(response, "Failed to load clan ranking from Clash Royale API")
+
+    raise_for_clash_api_error(response, fallback_detail)
 
     clans = response.json().get("items", [])
     return next((clan for clan in clans if clan.get("tag") == clan_tag), None)
+
+
+# USED BY BOT TO FETCH RANKING IN GERMANY LOCATION
+def fetch_clan_ranking_germany():
+    return fetch_ranked_clan_for_location(
+        ranking_path="rankings/clans",
+        fallback_detail="Failed to load clan ranking from Clash Royale API",
+    )
+
+
+def fetch_clanwar_ranking_germany():
+    return fetch_ranked_clan_for_location(
+        ranking_path="rankings/clanwars",
+        fallback_detail="Failed to load clan war ranking from Clash Royale API",
+    )
 
 def fetch_locations():
     try:
@@ -190,8 +204,7 @@ def fetch_player_by_tag(player_tag: str):
     }
     
 def fetch_current_clan_members():
-    clan_tag = "#8R8U0VQG"
-    encoded_tag = quote(clan_tag)
+    encoded_tag = quote(OUR_CLAN_TAG)
     
     try:
         response = requests.get(
@@ -212,8 +225,7 @@ def fetch_current_clan_members():
 def get_current_riverrace():
     try:
         # "#" in clan tags must be URL-encoded as "%23"
-        clan_tag = "#8R8U0VQG"
-        encoded_tag = "%238R8U0VQG"
+        encoded_tag = quote(OUR_CLAN_TAG)
         
         response = requests.get(
             f"https://api.clashroyale.com/v1/clans/{encoded_tag}/currentriverrace",
@@ -222,7 +234,7 @@ def get_current_riverrace():
         )
         raise_for_clash_api_error(response, "Failed to load current river race from Clash Royale API")
         response_data = response.json()
-        own_clan = find_clan_by_tag(response_data.get("clans", []), clan_tag)
+        own_clan = find_clan_by_tag(response_data.get("clans", []), OUR_CLAN_TAG)
 
         if own_clan is None:
             own_clan = response_data.get("clan")

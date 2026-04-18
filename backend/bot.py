@@ -14,7 +14,11 @@ from fastapi import HTTPException
 from app.database import SessionLocal, init_database
 from app.models import ClanSession, DiscordPlayerLink, Members
 from app.services.war_tracking import sync_war_data_once
-from app.services.clash_royale import fetch_clan_ranking_germany, fetch_player_by_tag
+from app.services.clash_royale import (
+    fetch_clan_ranking_germany,
+    fetch_clanwar_ranking_germany,
+    fetch_player_by_tag,
+)
 
 load_dotenv(Path(__file__).resolve().parent / ".env")
 
@@ -77,6 +81,11 @@ def load_warstats_snapshot():
         return clan_session, members
     finally:
         db.close()
+
+
+def get_war_day_label(clan_session: ClanSession):
+    section_index = clan_session.section_index or 0
+    return f"Tag {section_index + 1}"
 
 
 def save_discord_player_link(
@@ -142,17 +151,16 @@ def build_warstats_message():
     if not members:
         return "Es gibt noch keine gespeicherten Mitgliederdaten in der Datenbank."
 
-    played_count = sum(1 for member in members if (member.games_played or 0) > 0)
-    missing_members = [member for member in members if (member.games_played or 0) == 0]
-    total_games = sum(member.games_played or 0 for member in members)
+    played_count = sum(1 for member in members if (member.games_played_today or 0) > 0)
+    missing_members = [member for member in members if (member.games_played_today or 0) == 0]
+    total_games = sum(member.games_played_today or 0 for member in members)
 
     lines = [
         f"Clan: {clan_session.clan_tag}",
-        # clan session session index + 1 
-        f"Woche: {clan_session.section_index + 1}",
+        f"{get_war_day_label(clan_session)}",
         f"Phase: {clan_session.period_type}",
         f"Aktive Mitglieder: {played_count}/{len(members)}",
-        f"Gespielte Spiele insgesamt: {total_games}",
+        f"Gespielte Spiele heute: {total_games}",
     ]
 
     if missing_members:
@@ -177,12 +185,18 @@ def build_games_played_message():
     if not members:
         return "Es gibt noch keine gespeicherten Mitgliederdaten in der Datenbank."
 
+    members = sorted(
+        members,
+        key=lambda member: (member.games_played_today or 0, member.name.lower()),
+        reverse=True,
+    )
+
     lines = [
-        f"Gummibärenbande({clan_session.clan_tag}) - Woche {clan_session.section_index + 1} - {clan_session.period_type}",
-        "Mitglieder nach gespielten CW-Spielen:",
+        f"Gummibärenbande({clan_session.clan_tag}) - {get_war_day_label(clan_session)} - {clan_session.period_type}",
+        "Mitglieder nach heute gespielten CW-Spielen:",
     ]
     lines.extend(
-        f"- {member.name} ({member.member_tag}): {member.games_played or 0}"
+        f"- {member.name} ({member.member_tag}): {member.games_played_today or 0}"
         for member in members
     )
     return "\n".join(lines)
@@ -196,6 +210,22 @@ def build_germany_ranking_message(clan_data: dict):
         f"Clan: {clan_data.get('name')} ({clan_data.get('tag')})",
         f"Rang in Deutschland: {clan_data.get('rank')}",
         f"Mitglieder: {clan_data.get('members')}",
+    ]
+    return "\n".join(lines)
+
+
+def build_war_points_ranking_message(clan_data: dict):
+    if not clan_data:
+        return "Der Clan ist nicht in der deutschen Clanwar-Bestenliste gelistet oder es ist ein Fehler aufgetreten."
+
+    members_count = clan_data.get("members")
+    if members_count is None:
+        members_count = clan_data.get("memberCount")
+
+    lines = [
+        f"Clan: {clan_data.get('name')} ({clan_data.get('tag')})",
+        f"Rang in Deutschland (Clanwars): {clan_data.get('rank')}",
+        f"Mitglieder: {members_count}",
     ]
     return "\n".join(lines)
 
@@ -627,7 +657,7 @@ async def publish_rules(
         ephemeral=True,
     )
     
-@bot.tree.command(name="war_games_played", description="Zeigt die Anzahl gespielter CW-Spiele")
+@bot.tree.command(name="war_games_played", description="Zeigt die heute gespielten CW-Spiele")
 async def war_games_played(interaction: discord.Interaction):
     await interaction.response.defer(thinking=True)
 
@@ -657,6 +687,33 @@ async def germany_ranking(interaction: discord.Interaction):
             return
 
         message = build_germany_ranking_message(clan_data)
+    except Exception as exc:
+        await interaction.followup.send(
+            f"Die Daten konnten nicht geladen werden: {exc}",
+            ephemeral=True,
+        )
+        return
+
+    await interaction.followup.send(message)
+
+
+@bot.tree.command(
+    name="war_points_ranking",
+    description="Zeigt die deutsche Clanwar-Bestenlistenplatzierung an",
+)
+async def war_points_ranking(interaction: discord.Interaction):
+    await interaction.response.defer(thinking=True)
+
+    try:
+        clan_data = await asyncio.to_thread(fetch_clanwar_ranking_germany)
+        if not clan_data:
+            await interaction.followup.send(
+                "Der Clan ist nicht in der deutschen Clanwar-Bestenliste gelistet.",
+                ephemeral=True,
+            )
+            return
+
+        message = build_war_points_ranking_message(clan_data)
     except Exception as exc:
         await interaction.followup.send(
             f"Die Daten konnten nicht geladen werden: {exc}",
