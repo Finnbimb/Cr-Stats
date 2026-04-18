@@ -224,7 +224,7 @@ def build_war_points_ranking_message(clan_data: dict):
 
     lines = [
         f"Clan: {clan_data.get('name')} ({clan_data.get('tag')})",
-        f"Rang in Deutschland (Clanwars): {clan_data.get('rank')}, ({clan_data.get('points')} Punkte)",
+        f"Rang in Deutschland (Clanwars): {clan_data.get('rank')}, ({clan_data.get('clanScore')} Punkte)",
         f"Mitglieder: {members_count}",
     ]
     return "\n".join(lines)
