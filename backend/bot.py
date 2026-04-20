@@ -187,16 +187,16 @@ def build_games_played_message():
 
     members = sorted(
         members,
-        key=lambda member: (member.games_played_today or 0, member.name.lower()),
+        key=lambda member: (member.games_played or 0, member.name.lower()),
         reverse=True,
     )
 
     lines = [
         f"Gummibärenbande({clan_session.clan_tag}) - {get_war_day_label(clan_session)} - {clan_session.period_type}",
-        "Mitglieder nach heute gespielten CW-Spielen:",
+        "Mitglieder nach insgesamt gespielten CW-Spielen:",
     ]
     lines.extend(
-        f"- {member.name} ({member.member_tag}): {member.games_played_today or 0}"
+        f"- {member.name} ({member.member_tag}): {member.games_played or 0}"
         for member in members
     )
     return "\n".join(lines)
@@ -657,7 +657,7 @@ async def publish_rules(
         ephemeral=True,
     )
     
-@bot.tree.command(name="war_games_played", description="Zeigt die heute gespielten CW-Spiele")
+@bot.tree.command(name="war_games_played", description="Zeigt die insgesamt gespielten CW-Spiele")
 async def war_games_played(interaction: discord.Interaction):
     await interaction.response.defer(thinking=True)
 
