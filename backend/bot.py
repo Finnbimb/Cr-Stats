@@ -18,6 +18,7 @@ from app.services.clash_royale import (
     fetch_clan_ranking_germany,
     fetch_clanwar_ranking_germany,
     fetch_player_by_tag,
+    get_tripledraft_cutoff_score,
 )
 
 load_dotenv(Path(__file__).resolve().parent / ".env")
@@ -790,6 +791,33 @@ async def register(interaction: discord.Interaction, player_tag: str):
     
 
     
+@bot.tree.command(
+    name="tripledraft_cutoff",
+    description="Zeigt die Mindest-Score für Platz 10000 im Triple Draft Event.",
+)
+async def tripledraft_cutoff(interaction: discord.Interaction):
+    await interaction.response.defer(thinking=True)
+
+    try:
+        data = await asyncio.to_thread(get_tripledraft_cutoff_score)
+    except Exception as exc:
+        await interaction.followup.send(
+            f"Die Daten konnten nicht geladen werden: {exc}",
+            ephemeral=True,
+        )
+        return
+
+    if data is None:
+        await interaction.followup.send("Keine Einträge im Triple Draft Leaderboard gefunden.")
+        return
+
+    await interaction.followup.send(
+        f"**Triple Draft – Cutoff Score (Platz {data['rank']})**\n"
+        f"Score: **{data['score']}**\n"
+        f"Letzter Spieler: {data['name']} ({data['tag']})"
+    )
+
+
 @bot.event
 async def on_member_join(member: discord.Member):
     print(f"[JOIN] Neuer User: {member} ({member.id}) in Guild {member.guild.name} ({member.guild.id})")

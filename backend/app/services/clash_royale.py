@@ -282,7 +282,39 @@ def extract_riverrace_info(clan_data: dict):
             for member in participants if member.get("tag") in {m.get("tag") for m in clan_members}
         ],
     }
-        
+    
+TRIPLE_DRAFT_LEADERBOARD_ID = 447994
+
+
+def get_tripledraft_cutoff_score():
+    try:
+        response = requests.get(
+            f"https://api.clashroyale.com/v1/leaderboard/{TRIPLE_DRAFT_LEADERBOARD_ID}",
+            headers=get_cr_api_headers(),
+            timeout=10,
+        )
+    except requests.RequestException as exc:
+        raise HTTPException(
+            status_code=502,
+            detail="Failed to load Triple Draft leaderboard from Clash Royale API",
+        ) from exc
+
+    raise_for_clash_api_error(response, "Failed to load Triple Draft leaderboard from Clash Royale API")
+    data = response.json()
+
+    items = data.get("items", [])
+    if not items:
+        return None
+
+    last_entry = items[-1]
+    return {
+        "rank": last_entry.get("rank"),
+        "score": last_entry.get("score"),
+        "name": last_entry.get("name"),
+        "tag": last_entry.get("tag"),
+    }
+
+
 def find_clan_by_tag(clans: list[dict], clan_tag: str):
     if not clans:
         return None
