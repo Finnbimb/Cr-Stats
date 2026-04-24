@@ -1,4 +1,5 @@
 import requests
+from datetime import datetime, timezone
 from fastapi import HTTPException
 
 from app.core.config import get_cr_api_token
@@ -8,6 +9,8 @@ from urllib.parse import quote
 
 OUR_CLAN_TAG = "#8R8U0VQG"
 GERMANY_LOCATION_NAME = "Germany"
+
+TRIPLE_DRAFT_LEADERBOARD_ID = 447994
 
 
 def get_cr_api_headers():
@@ -283,7 +286,38 @@ def extract_riverrace_info(clan_data: dict):
         ],
     }
     
-TRIPLE_DRAFT_LEADERBOARD_ID = 447994
+def parse_cr_timestamp(date_str: str) -> int:
+    dt = datetime.strptime(date_str, "%Y%m%dT%H%M%S.%fZ").replace(tzinfo=timezone.utc)
+    return int(dt.timestamp())
+
+
+def fetch_war_creation_date() -> int | None:
+    """Returns Unix timestamp of when the current war week started."""
+    encoded_tag = quote(OUR_CLAN_TAG)
+    try:
+        response = requests.get(
+            f"https://api.clashroyale.com/v1/clans/{encoded_tag}/riverracelog",
+            headers=get_cr_api_headers(),
+            timeout=10,
+        )
+    except requests.RequestException as exc:
+        raise HTTPException(
+            status_code=502,
+            detail="Failed to load river race log from Clash Royale API",
+        ) from exc
+
+    raise_for_clash_api_error(response, "Failed to load river race log from Clash Royale API")
+    items = response.json().get("items", [])
+    if not items:
+        return None
+
+    creation_date_str = items[0].get("creationTime") or items[0].get("creationDate")
+    if not creation_date_str:
+        return None
+
+    return parse_cr_timestamp(creation_date_str)
+
+
 
 
 def get_tripledraft_cutoff_score():

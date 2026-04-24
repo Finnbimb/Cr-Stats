@@ -1,10 +1,10 @@
 import os
 import json
 import subprocess
-from pathlib import Path
-from discord import app_commands
 import time
 import asyncio
+from pathlib import Path
+from discord import app_commands
 
 import discord
 from discord.ext import commands, tasks
@@ -18,6 +18,7 @@ from app.services.clash_royale import (
     fetch_clan_ranking_germany,
     fetch_clanwar_ranking_germany,
     fetch_player_by_tag,
+    fetch_war_creation_date,
     get_tripledraft_cutoff_score,
 )
 
@@ -31,6 +32,12 @@ CLAN_MEMBER_ROLE_NAME = "Clan Mitglied"
 ELDER_ROLE_NAME = "Ältester"
 VICE_ROLE_NAME = "Vize"
 WELCOME_CHANNEL_ID = 1492165582563311647
+WAR_REMINDER_CHANNEL_ID = 1492165866589257808
+
+WAR_GAMES_PER_DAY = 4
+WAR_REMINDER_HOURS_BEFORE_END = 2
+
+_reminded_for_sections: set[int] = set()
 
 
 
@@ -509,6 +516,111 @@ async def post_or_update_channel_message(
     return refreshed_message
 
 
+def load_reminder_candidates() -> tuple[object | None, list]:
+    """Returns (clan_session, members_with_open_games) from DB."""
+    db = SessionLocal()
+    try:
+        clan_session = db.query(ClanSession).first()
+        if clan_session is None:
+            return None, []
+
+        members = (
+            db.query(Members)
+            .filter(Members.games_played_today < WAR_GAMES_PER_DAY)
+            .all()
+        )
+        return clan_session, members
+    finally:
+        db.close()
+
+
+def load_discord_link_for_player(player_tag: str):
+    db = SessionLocal()
+    try:
+        return (
+            db.query(DiscordPlayerLink)
+            .filter(DiscordPlayerLink.player_tag == player_tag)
+            .first()
+        )
+    finally:
+        db.close()
+
+
+async def send_war_day_reminders():
+    if WAR_REMINDER_CHANNEL_ID == 0:
+        return
+
+    clan_session, open_members = await asyncio.to_thread(load_reminder_candidates)
+
+    if clan_session is None or clan_session.period_type != "warDay":
+        return
+
+    section_index = clan_session.section_index
+    if section_index in _reminded_for_sections:
+        return
+
+    try:
+        creation_date = await asyncio.to_thread(fetch_war_creation_date)
+    except Exception as exc:
+        print(f"Fehler beim Laden des War-Startdatums: {exc}")
+        return
+
+    if creation_date is None:
+        return
+
+    day_end = creation_date + (section_index + 1) * 24 * 3600
+    now = int(time.time())
+    seconds_until_end = day_end - now
+
+    if not (0 < seconds_until_end <= WAR_REMINDER_HOURS_BEFORE_END * 3600):
+        return
+
+    mentions = []
+    for member in open_members:
+        link = await asyncio.to_thread(load_discord_link_for_player, member.member_tag)
+        if link is None:
+            continue
+
+        guild = bot.get_guild(int(link.guild_id)) if link.guild_id else None
+        if guild is None:
+            continue
+
+        discord_member = guild.get_member(int(link.discord_user_id))
+        if discord_member is None:
+            continue
+
+        remaining = WAR_GAMES_PER_DAY - (member.games_played_today or 0)
+        mentions.append((guild, discord_member.mention, member.name, remaining))
+
+    if not mentions:
+        return
+
+    guilds_to_mentions: dict[int, list[str]] = {}
+    for guild, mention, name, remaining in mentions:
+        guilds_to_mentions.setdefault(guild.id, {"guild": guild, "lines": []})
+        guilds_to_mentions[guild.id]["lines"].append(f"- {mention} ({name}): noch {remaining} Spiel(e)")
+
+    for entry in guilds_to_mentions.values():
+        guild = entry["guild"]
+        channel = guild.get_channel(WAR_REMINDER_CHANNEL_ID)
+        if channel is None:
+            continue
+
+        lines = "\n".join(entry["lines"])
+        hours_left = round(seconds_until_end / 3600, 1)
+        message = (
+            f"**Kriegstag endet in ~{hours_left} Stunden!** Folgende Mitglieder haben noch Spiele offen:\n"
+            f"{lines}"
+        )
+        try:
+            await channel.send(message)
+        except (discord.Forbidden, discord.HTTPException) as exc:
+            print(f"Fehler beim Senden der War-Erinnerung in Guild {guild.id}: {exc}")
+
+    _reminded_for_sections.add(section_index)
+    print(f"War-Erinnerung gesendet für Section {section_index} ({len(mentions)} Spieler).")
+
+
 @tasks.loop(minutes=WAR_SYNC_INTERVAL_MINUTES)
 async def war_data_sync_loop():
     try:
@@ -516,6 +628,11 @@ async def war_data_sync_loop():
         print(f"War-Daten synchronisiert: {result}")
     except Exception as exc:
         print(f"Fehler beim periodischen War-Daten-Sync: {exc}")
+
+    try:
+        await send_war_day_reminders()
+    except Exception as exc:
+        print(f"Fehler beim War-Reminder-Check: {exc}")
 
 
 @war_data_sync_loop.before_loop
