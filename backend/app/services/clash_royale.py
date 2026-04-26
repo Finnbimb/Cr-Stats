@@ -10,7 +10,7 @@ from urllib.parse import quote
 OUR_CLAN_TAG = "#8R8U0VQG"
 GERMANY_LOCATION_NAME = "Germany"
 
-TRIPLE_DRAFT_LEADERBOARD_ID = 447994
+POL_CUTOFF_RANK = 10000
 
 
 def get_cr_api_headers():
@@ -335,32 +335,46 @@ def fetch_war_creation_date() -> int | None:
 
 
 
-def get_tripledraft_cutoff_score():
-    try:
-        response = requests.get(
-            f"https://api.clashroyale.com/v1/leaderboard/{TRIPLE_DRAFT_LEADERBOARD_ID}",
-            headers=get_cr_api_headers(),
-            timeout=10,
-        )
-    except requests.RequestException as exc:
-        raise HTTPException(
-            status_code=502,
-            detail="Failed to load Triple Draft leaderboard from Clash Royale API",
-        ) from exc
+def get_pol_cutoff_score():
+    all_items = []
+    after = None
 
-    raise_for_clash_api_error(response, "Failed to load Triple Draft leaderboard from Clash Royale API")
-    data = response.json()
+    while len(all_items) < POL_CUTOFF_RANK:
+        params = {"limit": 1000}
+        if after:
+            params["after"] = after
 
-    items = data.get("items", [])
-    if not items:
+        try:
+            response = requests.get(
+                "https://api.clashroyale.com/v1/locations/global/rankings/players",
+                headers=get_cr_api_headers(),
+                params=params,
+                timeout=10,
+            )
+        except requests.RequestException as exc:
+            raise HTTPException(
+                status_code=502,
+                detail="Failed to load Path of Legends rankings from Clash Royale API",
+            ) from exc
+
+        raise_for_clash_api_error(response, "Failed to load Path of Legends rankings from Clash Royale API")
+        data = response.json()
+        items = data.get("items", [])
+        all_items.extend(items)
+
+        after = data.get("paging", {}).get("cursors", {}).get("after")
+        if not after or len(items) < 1000:
+            break
+
+    if len(all_items) < POL_CUTOFF_RANK:
         return None
 
-    last_entry = items[-1]
+    entry = all_items[POL_CUTOFF_RANK - 1]
     return {
-        "rank": last_entry.get("rank"),
-        "score": last_entry.get("score"),
-        "name": last_entry.get("name"),
-        "tag": last_entry.get("tag"),
+        "rank": entry.get("rank"),
+        "trophies": entry.get("trophies"),
+        "name": entry.get("name"),
+        "tag": entry.get("tag"),
     }
 
 

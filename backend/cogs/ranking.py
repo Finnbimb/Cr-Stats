@@ -7,7 +7,7 @@ from discord.ext import commands
 from app.services.clash_royale import (
     fetch_clan_ranking_germany,
     fetch_clanwar_ranking_germany,
-    get_tripledraft_cutoff_score,
+    get_pol_cutoff_score,
 )
 
 
@@ -66,21 +66,21 @@ class RankingCog(commands.Cog, name="Ranking"):
         except Exception as exc:
             await interaction.followup.send(f"Die Daten konnten nicht geladen werden: {exc}", ephemeral=True)
 
-    @app_commands.command(name="tripledraft_cutoff", description="Zeigt die Mindest-Score für Platz 10000 im Triple Draft Event.")
-    async def tripledraft_cutoff(self, interaction: discord.Interaction):
+    @app_commands.command(name="pol_cutoff", description="Zeigt die Mindest-Trophäen für Platz 10.000 im globalen Path of Legends Ranking.")
+    async def pol_cutoff(self, interaction: discord.Interaction):
         await interaction.response.defer(thinking=True)
         try:
-            data = await asyncio.to_thread(get_tripledraft_cutoff_score)
+            data = await asyncio.to_thread(get_pol_cutoff_score)
         except Exception as exc:
             await interaction.followup.send(f"Die Daten konnten nicht geladen werden: {exc}", ephemeral=True)
             return
         if data is None:
-            await interaction.followup.send("Keine Einträge im Triple Draft Leaderboard gefunden.")
+            await interaction.followup.send("Rank 10.000 konnte nicht gefunden werden – möglicherweise weniger als 10.000 Spieler im Ranking.", ephemeral=True)
             return
         await interaction.followup.send(
-            f"**Triple Draft – Cutoff Score (Platz {data['rank']})**\n"
-            f"Score: **{data['score']}**\n"
-            f"Letzter Spieler: {data['name']} ({data['tag']})"
+            f"**Path of Legends – Cutoff (Platz {data['rank']})**\n"
+            f"Trophäen: **{data['trophies']}**\n"
+            f"Spieler: {data['name']} ({data['tag']})"
         )
 
 
