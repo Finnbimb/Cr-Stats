@@ -10,7 +10,7 @@ from urllib.parse import quote
 OUR_CLAN_TAG = "#8R8U0VQG"
 GERMANY_LOCATION_NAME = "Germany"
 
-POL_CUTOFF_RANK = 10000
+LEAGUE_CUTOFF_RANK = 10000
 
 
 def get_cr_api_headers():
@@ -335,11 +335,11 @@ def fetch_war_creation_date() -> int | None:
 
 
 
-def get_pol_cutoff_score():
+def get_league_cutoff_score():
     all_items = []
     after = None
 
-    while len(all_items) < POL_CUTOFF_RANK:
+    while len(all_items) < LEAGUE_CUTOFF_RANK:
         params = {"limit": 1000}
         if after:
             params["after"] = after
@@ -366,10 +366,10 @@ def get_pol_cutoff_score():
         if not after or len(items) < 1000:
             break
 
-    if len(all_items) < POL_CUTOFF_RANK:
+    if len(all_items) < LEAGUE_CUTOFF_RANK:
         return None
 
-    entry = all_items[POL_CUTOFF_RANK - 1]
+    entry = all_items[LEAGUE_CUTOFF_RANK - 1]
     return {
         "rank": entry.get("rank"),
         "trophies": entry.get("trophies"),
