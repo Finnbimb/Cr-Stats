@@ -116,7 +116,7 @@ class AdminCog(commands.Cog, name="Admin"):
         await interaction.response.send_message("Pong")
 
     @app_commands.command(name="bot_version", description="Zeigt die aktuell laufende Bot-Version an.")
-    async def bot_version(self, interaction: discord.Interaction):
+    async def version(self, interaction: discord.Interaction):
         await interaction.response.send_message(f"Aktuelle Bot-Version: `{get_git_revision()}`", ephemeral=True)
 
     @app_commands.dm_only()
