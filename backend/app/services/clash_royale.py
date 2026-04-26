@@ -10,7 +10,6 @@ from urllib.parse import quote
 OUR_CLAN_TAG = "#8R8U0VQG"
 GERMANY_LOCATION_NAME = "Germany"
 
-LEAGUE_CUTOFF_RANK = 10000
 
 
 def get_cr_api_headers():
@@ -334,48 +333,6 @@ def fetch_war_creation_date() -> int | None:
 
 
 
-
-def get_league_cutoff_score():
-    all_items = []
-    after = None
-
-    while len(all_items) < LEAGUE_CUTOFF_RANK:
-        params = {"limit": 1000}
-        if after:
-            params["after"] = after
-
-        try:
-            response = requests.get(
-                "https://api.clashroyale.com/v1/locations/global/rankings/players",
-                headers=get_cr_api_headers(),
-                params=params,
-                timeout=10,
-            )
-        except requests.RequestException as exc:
-            raise HTTPException(
-                status_code=502,
-                detail="Failed to load Path of Legends rankings from Clash Royale API",
-            ) from exc
-
-        raise_for_clash_api_error(response, "Failed to load Path of Legends rankings from Clash Royale API")
-        data = response.json()
-        items = data.get("items", [])
-        all_items.extend(items)
-
-        after = data.get("paging", {}).get("cursors", {}).get("after")
-        if not after or len(items) < 1000:
-            break
-
-    if len(all_items) < LEAGUE_CUTOFF_RANK:
-        return None
-
-    entry = all_items[LEAGUE_CUTOFF_RANK - 1]
-    return {
-        "rank": entry.get("rank"),
-        "trophies": entry.get("trophies"),
-        "name": entry.get("name"),
-        "tag": entry.get("tag"),
-    }
 
 
 def find_clan_by_tag(clans: list[dict], clan_tag: str):

@@ -7,7 +7,6 @@ from discord.ext import commands
 from app.services.clash_royale import (
     fetch_clan_ranking_germany,
     fetch_clanwar_ranking_germany,
-    get_league_cutoff_score,
 )
 
 
@@ -66,22 +65,6 @@ class RankingCog(commands.Cog, name="Ranking"):
         except Exception as exc:
             await interaction.followup.send(f"Die Daten konnten nicht geladen werden: {exc}", ephemeral=True)
 
-    @app_commands.command(name="league_cutoff", description="Zeigt die Mindest-Trophäen für Platz 10.000 im globalen Path of Legends Ranking.")
-    async def league_cutoff(self, interaction: discord.Interaction):
-        await interaction.response.defer(thinking=True)
-        try:
-            data = await asyncio.to_thread(get_league_cutoff_score)
-        except Exception as exc:
-            await interaction.followup.send(f"Die Daten konnten nicht geladen werden: {exc}", ephemeral=True)
-            return
-        if data is None:
-            await interaction.followup.send("Rank 10.000 konnte nicht gefunden werden – möglicherweise weniger als 10.000 Spieler im Ranking.", ephemeral=True)
-            return
-        await interaction.followup.send(
-            f"**Path of Legends – Cutoff (Platz {data['rank']})**\n"
-            f"Trophäen: **{data['trophies']}**\n"
-            f"Spieler: {data['name']} ({data['tag']})"
-        )
 
 
 async def setup(bot: commands.Bot):
