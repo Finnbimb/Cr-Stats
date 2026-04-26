@@ -10,3 +10,4 @@ backend/bot.log
 bot.log
 __pycache__/
 *.py[cod]
+frontend/dist/

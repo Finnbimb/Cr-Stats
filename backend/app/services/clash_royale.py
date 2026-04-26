@@ -76,26 +76,41 @@ def normalize_player_tag(player_tag: str):
     return tag
 
 
-def fetch_location_name(location_id: int):
+def normalize_clan_tag(clan_tag: str):
+    tag = clan_tag.strip().upper()
+    if not tag:
+        raise HTTPException(status_code=400, detail="Clan tag cannot be empty")
+
+    if not tag.startswith("#"):
+        tag = f"#{tag}"
+
+    return tag
+
+
+def fetch_clan_by_tag(clan_tag: str):
+    clan_tag = normalize_clan_tag(clan_tag)
+    encoded_tag = quote(clan_tag)
+
     try:
         response = requests.get(
-            f"https://api.clashroyale.com/v1/locations/{location_id}",
+            f"https://api.clashroyale.com/v1/clans/{encoded_tag}",
             headers=get_cr_api_headers(),
             timeout=10,
         )
     except requests.RequestException as exc:
         raise HTTPException(
             status_code=502,
-            detail="Failed to load location from Clash Royale API",
+            detail="Failed to load clan from Clash Royale API",
         ) from exc
 
-    raise_for_clash_api_error(response, "Failed to load location from Clash Royale API")
+    raise_for_clash_api_error(response, "Failed to load clan from Clash Royale API")
 
-    name = response.json().get("name")
-    if not name:
-        raise HTTPException(status_code=400, detail="Invalid location ID")
+    clan_data = response.json()
+    location = clan_data.get("location") or {}
+    if not location.get("id") or not location.get("name"):
+        raise HTTPException(status_code=400, detail="Clan has no valid location")
 
-    return name
+    return clan_data
 
 # ONLY USED FOR FRONTEND, BOT HAS ITS OWN FUNCTION 
 def fetch_user_clan_ranking(user: User):

@@ -70,8 +70,8 @@ function Dashboard({ onUnauthorized, token }) {
         <h2>Dashboard</h2>
         <p className="message error">{dashboardData.message}</p>
         <p className="hint">
-          Hinterlege zuerst Clan-Tag und Location im Profile, damit das Ranking
-          geladen werden kann.
+          Hinterlege zuerst den Clan-Tag im Profile, damit Location und Ranking
+          automatisch geladen werden koennen.
         </p>
         <a className="inline-link" href="#/profile">
           Zum Profile

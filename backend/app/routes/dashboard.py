@@ -2,10 +2,8 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.dependencies import get_current_db_user, get_db
-from app.dependencies import get_current_db_user, get_db
-from app.services.clash_royale import get_current_riverrace
 from app.models import User
-from app.services.clash_royale import fetch_locations, fetch_user_clan_ranking
+from app.services.clash_royale import fetch_user_clan_ranking
 
 router = APIRouter()
 
@@ -51,11 +49,6 @@ def get_dashboard(user: User = Depends(get_current_db_user), db: Session = Depen
         "members": user_clan.get("members"),
         "location": user.location,
     }
-
-
-@router.get("/locations")
-def get_locations():
-    return fetch_locations()
 
 # @router.get("/dashboard/current-riverrace")
 # def get_riverrace(user: User = Depends(get_current_db_user)):

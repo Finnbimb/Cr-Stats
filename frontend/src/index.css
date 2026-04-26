@@ -2,8 +2,7 @@
   font-family: system-ui, sans-serif;
   line-height: 1.5;
   font-weight: 400;
-  color: #111827;
-  background: #e5e7eb;
+  color: #e2e8f0;
 }
 
 * {
@@ -12,6 +11,14 @@
 
 body {
   margin: 0;
+  min-height: 100vh;
+  background-color: #0d1923;
+  background-image:
+    radial-gradient(ellipse at 15% 60%, rgba(0, 110, 70, 0.13) 0%, transparent 45%),
+    radial-gradient(ellipse at 85% 20%, rgba(20, 50, 110, 0.18) 0%, transparent 45%),
+    radial-gradient(rgba(255, 255, 255, 0.055) 1px, transparent 1px);
+  background-size: 100% 100%, 100% 100%, 38px 38px;
+  background-attachment: fixed;
 }
 
 #root {

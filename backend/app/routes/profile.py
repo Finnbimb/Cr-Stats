@@ -1,10 +1,10 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 from app.dependencies import get_current_db_user, get_db
 from app.models import User
-from app.schemas.profile import ClanTagRequest, LocationRequest
-from app.services.clash_royale import fetch_location_name
+from app.schemas.profile import ClanTagRequest
+from app.services.clash_royale import fetch_clan_by_tag, normalize_clan_tag
 
 router = APIRouter()
 
@@ -15,19 +15,22 @@ def save_clan_tag(
     current_user: User = Depends(get_current_db_user),
     db: Session = Depends(get_db)
 ):
-    tag = request.clan_tag.strip().upper()
-    if not tag:
-        raise HTTPException(status_code=400, detail="Clan tag cannot be empty")
-    if not tag.startswith("#"):
-        tag = "#" + tag
+    tag = normalize_clan_tag(request.clan_tag)
+    clan_data = fetch_clan_by_tag(tag)
+    location = clan_data["location"]
 
     current_user.clan_tag = tag
+    current_user.location_id = location["id"]
+    current_user.location = location["name"]
+    current_user.clan_ranking = None
     db.commit()
     db.refresh(current_user)
 
     return {
         "message": "Clan tag updated successfully",
-        "clan_tag": current_user.clan_tag
+        "clan_tag": current_user.clan_tag,
+        "location_id": current_user.location_id,
+        "location": current_user.location,
     }
 
 
@@ -41,25 +44,3 @@ def get_profile(user: User = Depends(get_current_db_user)):
         "location": user.location,
         "clan_ranking": user.clan_ranking,
     }
-
-
-@router.put("/profile/location")
-def update_location(
-    request: LocationRequest,
-    user: User = Depends(get_current_db_user),
-    db: Session = Depends(get_db)
-):
-    name = fetch_location_name(request.location_id)
-
-    user.location_id = request.location_id
-    user.location = name
-    user.clan_ranking = None
-    db.commit()
-    db.refresh(user)
-
-    return {
-        "message": "Location updated successfully",
-        "location_id": user.location_id,
-        "location": user.location
-    }
-

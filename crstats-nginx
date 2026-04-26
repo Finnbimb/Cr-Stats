@@ -1,0 +1,17 @@
+server {
+    listen 80;
+    server_name 178.104.170.22;
+
+    root /var/www/crstats;
+    index index.html;
+
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+
+    location /api/ {
+        proxy_pass http://127.0.0.1:8000/;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+}

@@ -1,0 +1,12 @@
+[Unit]
+Description=CRStats Backend
+After=network.target
+
+[Service]
+User=root
+WorkingDirectory=/root/Cr-Stats/backend
+ExecStart=/root/Cr-Stats/backend/venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8000
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://127.0.0.1:8000'
+const API_BASE_URL = 'http://178.104.170.22/api'
 
 async function parseResponse(response) {
   const text = await response.text()
@@ -37,6 +37,14 @@ function createAuthHeaders(token, extraHeaders = {}) {
   }
 }
 
+export async function registerUser(username, email, password) {
+  return apiRequest('/register', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username, email, password }),
+  })
+}
+
 export async function loginUser(username, password) {
   return apiRequest('/login', {
     method: 'POST',
@@ -70,24 +78,6 @@ export async function updateClanTag(token, clanTag) {
     }),
     body: JSON.stringify({
       clan_tag: clanTag,
-    }),
-  })
-}
-
-export async function getLocations(token) {
-  return apiRequest('/locations', {
-    headers: createAuthHeaders(token),
-  })
-}
-
-export async function updateLocation(token, locationId) {
-  return apiRequest('/profile/location', {
-    method: 'PUT',
-    headers: createAuthHeaders(token, {
-      'Content-Type': 'application/json',
-    }),
-    body: JSON.stringify({
-      location_id: locationId,
     }),
   })
 }

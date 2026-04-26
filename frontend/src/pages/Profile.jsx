@@ -1,23 +1,17 @@
 import { useEffect, useState } from 'react'
 import {
-  getLocations,
   getProfile,
   updateClanTag,
-  updateLocation,
 } from '../services/api.js'
 
 function Profile({ onUnauthorized, token }) {
   const [profile, setProfile] = useState(null)
   const [clanTag, setClanTag] = useState('')
-  const [locations, setLocations] = useState([])
-  const [selectedLocationId, setSelectedLocationId] = useState('')
 
   const [error, setError] = useState('')
-  const [locationsError, setLocationsError] = useState('')
   const [successMessage, setSuccessMessage] = useState('')
 
   const [isLoading, setIsLoading] = useState(true)
-  const [isLoadingLocations, setIsLoadingLocations] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
 
   useEffect(() => {
@@ -33,7 +27,6 @@ function Profile({ onUnauthorized, token }) {
 
         setProfile(data)
         setClanTag(data.clan_tag || '')
-        setSelectedLocationId(data.location_id ? String(data.location_id) : '')
       } catch (loadError) {
         if (!isActive) {
           return
@@ -52,42 +45,11 @@ function Profile({ onUnauthorized, token }) {
       }
     }
 
-    async function loadLocations() {
-      try {
-        const data = await getLocations(token)
-
-        if (!isActive) {
-          return
-        }
-
-        const locationOptions = Array.isArray(data) ? data : []
-        setLocations(locationOptions)
-      } catch (loadError) {
-        if (!isActive) {
-          return
-        }
-
-        if (loadError.status === 401) {
-          onUnauthorized()
-          return
-        }
-
-        setLocationsError(loadError.message)
-      } finally {
-        if (isActive) {
-          setIsLoadingLocations(false)
-        }
-      }
-    }
-
     setError('')
-    setLocationsError('')
     setSuccessMessage('')
     setIsLoading(true)
-    setIsLoadingLocations(true)
 
     loadProfile()
-    loadLocations()
 
     return () => {
       isActive = false
@@ -101,14 +63,19 @@ function Profile({ onUnauthorized, token }) {
     setSuccessMessage('')
 
     try {
-      const normalizedClanTag = clanTag.trim()
-      const currentLocationId = profile?.location_id ? String(profile.location_id) : ''
+      const trimmedClanTag = clanTag.trim().toUpperCase()
+      const normalizedClanTag = trimmedClanTag.startsWith('#')
+        ? trimmedClanTag
+        : `#${trimmedClanTag}`
       const shouldUpdateClanTag =
-        normalizedClanTag !== '' && normalizedClanTag !== (profile?.clan_tag || '')
-      const shouldUpdateLocation =
-        selectedLocationId !== '' && selectedLocationId !== currentLocationId
+        trimmedClanTag !== '' &&
+        (
+          normalizedClanTag !== (profile?.clan_tag || '') ||
+          !profile?.location_id ||
+          !profile?.location
+        )
 
-      if (!shouldUpdateClanTag && !shouldUpdateLocation) {
+      if (!shouldUpdateClanTag) {
         setSuccessMessage('Keine Änderungen zum Speichern.')
         return
       }
@@ -121,20 +88,11 @@ function Profile({ onUnauthorized, token }) {
         nextProfile = {
           ...nextProfile,
           clan_tag: clanData.clan_tag,
+          location_id: clanData.location_id,
+          location: clanData.location,
         }
         setClanTag(clanData.clan_tag)
-        savedFields.push('Clan-Tag')
-      }
-
-      if (shouldUpdateLocation) {
-        const locationData = await updateLocation(token, Number(selectedLocationId))
-        nextProfile = {
-          ...nextProfile,
-          location_id: locationData.location_id,
-          location: locationData.location,
-        }
-        setSelectedLocationId(String(locationData.location_id))
-        savedFields.push('Location')
+        savedFields.push('Clan-Tag und Location')
       }
 
       setProfile(nextProfile)
@@ -161,8 +119,8 @@ function Profile({ onUnauthorized, token }) {
         <p className="eyebrow">Profile</p>
         <h2>Settings</h2>
         <p className="hint">
-          Hier kannst du den Clan-Tag setzen. Die Locations werden beim
-          Öffnen der Seite automatisch geladen.
+          Hier kannst du den Clan-Tag setzen. Die Location wird automatisch
+          aus den Clash-Royale-Clandaten übernommen.
         </p>
       </div>
 
@@ -193,28 +151,11 @@ function Profile({ onUnauthorized, token }) {
           />
         </label>
         <p className="hint">
-          Das Backend setzt das `#` automatisch, falls du es weglaesst.
+          Das Backend setzt das `#` automatisch, falls du es weglaesst, und
+          prueft den Clan direkt bei der Clash-Royale-API.
         </p>
-        <div className="form-field">
-          <span>Location</span>
-          <select
-            value={selectedLocationId}
-            onChange={(event) => setSelectedLocationId(event.target.value)}
-            disabled={isLoadingLocations || locations.length === 0}
-          >
-            <option value="">
-              {isLoadingLocations ? 'Locations werden geladen...' : 'Bitte auswählen'}
-            </option>
-            {locations.map((item) => (
-              <option key={item.id} value={item.id}>
-                {item.name}
-              </option>
-            ))}
-          </select>
-        </div>
 
         {error ? <p className="message error">{error}</p> : null}
-        {locationsError ? <p className="message error">{locationsError}</p> : null}
         {successMessage ? <p className="message success">{successMessage}</p> : null}
 
         <button disabled={isSaving} type="submit">
