@@ -442,3 +442,232 @@ p {
     flex-direction: column;
   }
 }
+
+/* ── Sidebar ── */
+.sidebar {
+  position: fixed;
+  right: 0;
+  top: 0;
+  height: 100vh;
+  background: rgba(8, 18, 28, 0.97);
+  border-left: 1px solid rgba(255, 255, 255, 0.07);
+  display: flex;
+  flex-direction: column;
+  backdrop-filter: blur(16px);
+  z-index: 200;
+  transition: width 0.2s ease;
+  overflow: hidden;
+}
+
+.sidebar-open  { width: 220px; }
+.sidebar-closed { width: 52px; }
+
+.sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 0.75rem;
+  height: 56px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  flex-shrink: 0;
+}
+
+.sidebar-closed .sidebar-header {
+  justify-content: center;
+}
+
+.sidebar-brand {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #475569;
+  white-space: nowrap;
+}
+
+.sidebar-toggle-btn {
+  background: none;
+  border: none;
+  color: #64748b;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  flex-shrink: 0;
+  transition: color 0.15s, background 0.15s;
+}
+
+.sidebar-toggle-btn:hover {
+  color: #e2e8f0;
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.sidebar-nav {
+  flex: 1;
+  padding: 0.75rem 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.sidebar-link {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem 0.65rem;
+  border-radius: 10px;
+  color: #64748b;
+  text-decoration: none;
+  font-size: 0.88rem;
+  font-weight: 500;
+  white-space: nowrap;
+  transition: background 0.15s, color 0.15s;
+}
+
+.sidebar-link:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: #e2e8f0;
+}
+
+.sidebar-link.active {
+  background: rgba(62, 207, 142, 0.1);
+  color: #3ecf8e;
+}
+
+.sidebar-closed .sidebar-link {
+  justify-content: center;
+  padding: 0.6rem;
+}
+
+.sidebar-footer {
+  padding: 0.75rem 0.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.sidebar-avatar-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  width: 100%;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.45rem 0.65rem;
+  border-radius: 10px;
+  transition: background 0.15s;
+}
+
+.sidebar-avatar-btn:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.sidebar-closed .sidebar-avatar-btn {
+  justify-content: center;
+  padding: 0.45rem;
+}
+
+.sidebar-avatar-circle {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #3ecf8e, #2bb577);
+  color: #061a0e;
+  font-weight: 700;
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.sidebar-avatar-name {
+  color: #e2e8f0;
+  font-size: 0.88rem;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── Profile popup ── */
+.profile-popup-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+}
+
+.profile-popup-card {
+  position: fixed;
+  bottom: 72px;
+  background: rgba(8, 18, 28, 0.98);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 1.25rem;
+  min-width: 190px;
+  backdrop-filter: blur(16px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  z-index: 301;
+}
+
+.profile-popup-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #3ecf8e, #2bb577);
+  color: #061a0e;
+  font-weight: 700;
+  font-size: 1.3rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.profile-popup-username {
+  margin: 0;
+  font-weight: 700;
+  color: #e2e8f0;
+  font-size: 1rem;
+}
+
+.profile-popup-action {
+  display: block;
+  width: 100%;
+  text-align: center;
+  padding: 0.6rem;
+  background: rgba(62, 207, 142, 0.1);
+  color: #3ecf8e;
+  border-radius: 10px;
+  text-decoration: none;
+  font-size: 0.88rem;
+  font-weight: 600;
+  transition: background 0.15s;
+}
+
+.profile-popup-action:hover {
+  background: rgba(62, 207, 142, 0.18);
+}
+
+.profile-popup-logout {
+  width: 100%;
+  padding: 0.6rem;
+  background: rgba(248, 113, 113, 0.08);
+  border: 1px solid rgba(248, 113, 113, 0.18);
+  border-radius: 10px;
+  color: #f87171;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.profile-popup-logout:hover {
+  background: rgba(248, 113, 113, 0.18);
+}

@@ -4,7 +4,7 @@ import {
   updateClanTag,
 } from '../services/api.js'
 
-function Profile({ onUnauthorized, token }) {
+function Profile({ onUnauthorized, token, onDashboardInvalidate }) {
   const [profile, setProfile] = useState(null)
   const [clanTag, setClanTag] = useState('')
 
@@ -97,6 +97,7 @@ function Profile({ onUnauthorized, token }) {
 
       setProfile(nextProfile)
       setSuccessMessage(`${savedFields.join(' und ')} gespeichert.`)
+      onDashboardInvalidate()
     } catch (saveError) {
       if (saveError.status === 401) {
         onUnauthorized()

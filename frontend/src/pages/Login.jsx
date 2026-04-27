@@ -236,6 +236,7 @@ function Login({ error, isLoading, onLogin, onRegister }) {
                   value={rPassword}
                   onChange={e => setRPassword(e.target.value)}
                   placeholder="••••••••"
+                  autoComplete="new-password"
                   required
                 />
                 <button type="button" className="icon-right" onClick={() => setShowRPw(v => !v)}>
@@ -254,6 +255,7 @@ function Login({ error, isLoading, onLogin, onRegister }) {
                   value={rConfirm}
                   onChange={e => setRConfirm(e.target.value)}
                   placeholder="••••••••"
+                  autoComplete="new-password"
                   required
                 />
                 <button type="button" className="icon-right" onClick={() => setShowRConfirm(v => !v)}>

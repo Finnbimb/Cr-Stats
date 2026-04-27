@@ -3,7 +3,8 @@ import './App.css'
 import Dashboard from './pages/Dashboard.jsx'
 import Login from './pages/Login.jsx'
 import Profile from './pages/Profile.jsx'
-import { loginUser, registerUser, updateClanTag } from './services/api.js'
+import Sidebar from './components/Sidebar.jsx'
+import { loginUser, registerUser, updateClanTag, getDashboard } from './services/api.js'
 
 function getPageFromHash() {
   const page = window.location.hash.replace('#/', '')
@@ -23,6 +24,26 @@ function App() {
   const [currentPage, setCurrentPage] = useState(getPageFromHash())
   const [authError, setAuthError] = useState('')
   const [isAuthLoading, setIsAuthLoading] = useState(false)
+
+  const [dashboardData, setDashboardData] = useState(null)
+  const [dashboardError, setDashboardError] = useState('')
+  const [dashboardLoading, setDashboardLoading] = useState(false)
+
+  useEffect(() => {
+    if (!token || currentPage !== 'dashboard' || dashboardData !== null) return
+    let isActive = true
+    setDashboardLoading(true)
+    setDashboardError('')
+    getDashboard(token)
+      .then(data => { if (isActive) setDashboardData(data) })
+      .catch(err => {
+        if (!isActive) return
+        if (err.status === 401) { handleLogout(); return }
+        setDashboardError(err.message)
+      })
+      .finally(() => { if (isActive) setDashboardLoading(false) })
+    return () => { isActive = false }
+  }, [currentPage, token, dashboardData])
 
   useEffect(() => {
     function handleHashChange() {
@@ -77,7 +98,12 @@ function App() {
     localStorage.removeItem('token')
     setToken('')
     setAuthError('')
+    setDashboardData(null)
     navigateTo('login')
+  }
+
+  function invalidateDashboard() {
+    setDashboardData(null)
   }
 
   if (!token) {
@@ -98,24 +124,25 @@ function App() {
           <p className="eyebrow">CrStats</p>
           <h1>Clan Dashboard</h1>
         </div>
-        <nav className="nav-actions">
-          <a className={currentPage === 'dashboard' ? 'active' : ''} href="#/dashboard">
-            Dashboard
-          </a>
-          <a className={currentPage === 'profile' ? 'active' : ''} href="#/profile">
-            Profil
-          </a>
-          <button onClick={handleLogout} type="button">
-            Logout
-          </button>
-        </nav>
       </header>
 
       {currentPage === 'dashboard' ? (
-        <Dashboard token={token} onUnauthorized={handleLogout} />
+        <Dashboard
+          data={dashboardData}
+          error={dashboardError}
+          isLoading={dashboardLoading}
+          onRefresh={invalidateDashboard}
+          onUnauthorized={handleLogout}
+        />
       ) : (
-        <Profile token={token} onUnauthorized={handleLogout} />
+        <Profile
+          token={token}
+          onUnauthorized={handleLogout}
+          onDashboardInvalidate={invalidateDashboard}
+        />
       )}
+
+      <Sidebar token={token} currentPage={currentPage} onLogout={handleLogout} />
     </main>
   )
 }
