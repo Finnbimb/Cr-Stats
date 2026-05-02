@@ -327,6 +327,10 @@ input:focus {
    TOP 3 CLANKRIEG WIDGET
    ════════════════════════════════════════════════════════════ */
 
+.war-top {
+  max-width: 440px;
+}
+
 .war-top-header {
   display: flex;
   justify-content: space-between;
