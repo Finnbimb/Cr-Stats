@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import './App.css'
 import Dashboard from './pages/Dashboard.jsx'
 import Login from './pages/Login.jsx'
@@ -6,6 +6,8 @@ import Members from './pages/Members.jsx'
 import Profile from './pages/Profile.jsx'
 import Sidebar from './components/Sidebar.jsx'
 import { loginUser, registerUser, updateClanTag, getDashboard, getMembers } from './services/api.js'
+
+const POLL_INTERVAL = 5 * 60 * 1000
 
 function getPageFromHash() {
   const page = window.location.hash.replace('#/', '')
@@ -29,44 +31,42 @@ function App() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
   const [dashboardData, setDashboardData] = useState(null)
-  const [dashboardError, setDashboardError] = useState('')
-  const [dashboardLoading, setDashboardLoading] = useState(false)
-
   const [membersData, setMembersData] = useState(null)
-  const [membersError, setMembersError] = useState('')
-  const [membersLoading, setMembersLoading] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState('')
+
+  const pollRef = useRef(null)
+
+  async function loadAllData(showLoading = false) {
+    if (showLoading) setIsLoading(true)
+    setError('')
+    try {
+      const [dashResult, membersResult] = await Promise.allSettled([
+        getDashboard(token),
+        getMembers(token),
+      ])
+      if (dashResult.status === 'fulfilled') {
+        setDashboardData(dashResult.value)
+      } else {
+        if (dashResult.reason?.status === 401) { handleLogout(); return }
+        setError(dashResult.reason?.message || 'Fehler beim Laden')
+      }
+      if (membersResult.status === 'fulfilled') {
+        setMembersData(membersResult.value.members)
+      } else if (membersResult.reason?.status === 401) {
+        handleLogout()
+      }
+    } finally {
+      if (showLoading) setIsLoading(false)
+    }
+  }
 
   useEffect(() => {
-    if (!token || currentPage !== 'dashboard' || dashboardData !== null) return
-    let isActive = true
-    setDashboardLoading(true)
-    setDashboardError('')
-    getDashboard(token)
-      .then(data => { if (isActive) setDashboardData(data) })
-      .catch(err => {
-        if (!isActive) return
-        if (err.status === 401) { handleLogout(); return }
-        setDashboardError(err.message)
-      })
-      .finally(() => { if (isActive) setDashboardLoading(false) })
-    return () => { isActive = false }
-  }, [currentPage, token, dashboardData])
-
-  useEffect(() => {
-    if (!token || currentPage !== 'members' || membersData !== null) return
-    let isActive = true
-    setMembersLoading(true)
-    setMembersError('')
-    getMembers(token)
-      .then(data => { if (isActive) setMembersData(data.members) })
-      .catch(err => {
-        if (!isActive) return
-        if (err.status === 401) { handleLogout(); return }
-        setMembersError(err.message)
-      })
-      .finally(() => { if (isActive) setMembersLoading(false) })
-    return () => { isActive = false }
-  }, [currentPage, token, membersData])
+    if (!token) return
+    loadAllData(true)
+    pollRef.current = setInterval(() => loadAllData(false), POLL_INTERVAL)
+    return () => clearInterval(pollRef.current)
+  }, [token])
 
   useEffect(() => {
     function handleHashChange() {
@@ -118,6 +118,7 @@ function App() {
   }
 
   function handleLogout() {
+    clearInterval(pollRef.current)
     localStorage.removeItem('token')
     setToken('')
     setAuthError('')
@@ -126,9 +127,9 @@ function App() {
     navigateTo('login')
   }
 
-  function invalidateDashboard() {
-    setDashboardData(null)
-  }
+  const avgTrophies = membersData?.length
+    ? Math.round(membersData.reduce((sum, m) => sum + (m.trophies || 0), 0) / membersData.length)
+    : null
 
   if (!token) {
     return (
@@ -154,26 +155,25 @@ function App() {
 
           <Dashboard
             data={dashboardData}
-            error={dashboardError}
-            isLoading={dashboardLoading}
-            onRefresh={invalidateDashboard}
-            onUnauthorized={handleLogout}
+            error={error}
+            isLoading={isLoading && !dashboardData}
+            onRefresh={() => loadAllData(true)}
+            avgTrophies={avgTrophies}
           />
         </>
       ) : currentPage === 'members' ? (
         <Members
           members={membersData}
-          error={membersError}
-          isLoading={membersLoading}
-          onRefresh={() => setMembersData(null)}
-          onUnauthorized={handleLogout}
+          error={error}
+          isLoading={isLoading && !membersData}
+          onRefresh={() => loadAllData(true)}
           clanName={dashboardData?.clan_name}
         />
       ) : (
         <Profile
           token={token}
           onUnauthorized={handleLogout}
-          onDashboardInvalidate={invalidateDashboard}
+          onDashboardInvalidate={() => loadAllData(true)}
         />
       )}
 
