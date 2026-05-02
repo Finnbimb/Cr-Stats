@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://178.104.170.22/api'
+const API_BASE_URL = '/api'
 
 async function parseResponse(response) {
   const text = await response.text()

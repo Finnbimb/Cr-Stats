@@ -1,5 +1,41 @@
-import { useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import '../auth.css'
+
+const SLIDE_INTERVAL = 4500
+const LOOP_RESET_DELAY = 650
+
+const featureSlides = [
+  {
+    label: 'Start',
+    title: 'Clan in Sekunden verbinden',
+    text: 'Registrieren, Clan-Tag setzen und CRStats lädt deine wichtigsten Clan-Daten direkt in dein Dashboard.',
+    stat: 'Clan Tag',
+    value: '#ABCD123',
+  },
+  {
+    label: 'Ranking',
+    title: 'Leaderboard ohne Suchen',
+    text: 'Behalte Clan-Name, Rang, Trophäen und Region an einem Ort, ohne jedes Mal ins Spiel wechseln zu müssen.',
+    stat: 'Ranking',
+    value: 'Top 200',
+  },
+  {
+    label: 'War',
+    title: 'War-Checks für den Alltag',
+    text: 'Der Fokus liegt auf Clan-War-Übersicht, offenen Teilnehmern und schnellen Checks für Leader und Co-Leader.',
+    stat: 'War View',
+    value: 'Live',
+  },
+  {
+    label: 'Profil',
+    title: 'Daten bleiben änderbar',
+    text: 'Wenn sich dein Clan ändert, aktualisierst du den Tag später im Profil und das Dashboard zieht nach.',
+    stat: 'Profil',
+    value: 'Flexibel',
+  },
+]
+
+const carouselSlides = [...featureSlides, featureSlides[0]]
 
 function IconUser() {
   return (
@@ -61,6 +97,7 @@ function IconEye({ closed }) {
 function Login({ error, isLoading, onLogin, onRegister }) {
   const [tab, setTab] = useState('login')
   const [step, setStep] = useState(1)
+  const [activeFeature, setActiveFeature] = useState(0)
 
   // Login state
   const [username, setUsername] = useState('')
@@ -104,223 +141,347 @@ function Login({ error, isLoading, onLogin, onRegister }) {
     onRegister(rUsername, rEmail, rPassword, rClanTag)
   }
 
+  const timerRef = useRef(null)
+  const resetTimeoutRef = useRef(null)
+  const skipNextScrollRef = useRef(false)
+  const cardRefs = useRef([])
+
+  const startTimer = useCallback(() => {
+    clearInterval(timerRef.current)
+    timerRef.current = setInterval(() => {
+      setActiveFeature(f => f + 1)
+    }, SLIDE_INTERVAL)
+  }, [])
+
+  function selectFeature(index) {
+    clearTimeout(resetTimeoutRef.current)
+    setActiveFeature(index)
+    startTimer()
+  }
+
+  useEffect(() => {
+    startTimer()
+    return () => {
+      clearInterval(timerRef.current)
+      clearTimeout(resetTimeoutRef.current)
+    }
+  }, [startTimer])
+
+  useEffect(() => {
+    if (skipNextScrollRef.current) {
+      skipNextScrollRef.current = false
+      return
+    }
+
+    cardRefs.current[activeFeature]?.scrollIntoView({
+      behavior: 'smooth',
+      inline: 'start',
+      block: 'nearest',
+    })
+
+    if (activeFeature === featureSlides.length) {
+      clearTimeout(resetTimeoutRef.current)
+      resetTimeoutRef.current = setTimeout(() => {
+        cardRefs.current[0]?.scrollIntoView({
+          behavior: 'auto',
+          inline: 'start',
+          block: 'nearest',
+        })
+        skipNextScrollRef.current = true
+        setActiveFeature(0)
+      }, LOOP_RESET_DELAY)
+    }
+  }, [activeFeature])
+
   const displayError = localError || error
 
   return (
     <div className="auth-layout">
-      <div className="auth-brand">
-        <div className="auth-logo">👑</div>
-        <h1 className="auth-title">CRStats</h1>
-        <p className="auth-subtitle">Clash Royale Clan Dashboard</p>
-      </div>
+      <section className="auth-shell" aria-label="CRStats Login">
+        <div className="auth-main">
+          <div className="auth-brand">
+            <div className="auth-logo">CR</div>
+            <div>
+              <p className="auth-kicker">Clan Command Center</p>
+              <h1 className="auth-title">CRStats</h1>
+              <p className="auth-subtitle">Clash Royale Clan Dashboard</p>
+            </div>
+          </div>
 
-      <div className="auth-card">
-        <div className="auth-tabs">
-          <button
-            type="button"
-            className={`auth-tab${tab === 'login' ? ' active' : ''}`}
-            onClick={() => switchTab('login')} 
-          >
-            Einloggen
-          </button>
-          <button
-            type="button"
-            className={`auth-tab${tab === 'register' ? ' active' : ''}`}
-            onClick={() => switchTab('register')}
-          >
-            Registrieren
-          </button>
+          <div className="auth-card">
+            <div className="auth-tabs">
+              <button
+                type="button"
+                className={`auth-tab${tab === 'login' ? ' active' : ''}`}
+                onClick={() => switchTab('login')}
+              >
+                Einloggen
+              </button>
+              <button
+                type="button"
+                className={`auth-tab${tab === 'register' ? ' active' : ''}`}
+                onClick={() => switchTab('register')}
+              >
+                Registrieren
+              </button>
+            </div>
+
+            {tab === 'login' && (
+              <form className="auth-form" onSubmit={handleLoginSubmit}>
+                <div className="auth-field">
+                  <label className="auth-field-label">Benutzername</label>
+                  <div className="auth-input-wrap">
+                    <span className="icon-left"><IconUser /></span>
+                    <input
+                      className="auth-input"
+                      value={username}
+                      onChange={e => setUsername(e.target.value)}
+                      placeholder="DeinName"
+                      autoComplete="username"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="auth-field">
+                  <label className="auth-field-label">Passwort</label>
+                  <div className="auth-input-wrap">
+                    <span className="icon-left"><IconKey /></span>
+                    <input
+                      className="auth-input has-right-icon"
+                      type={showPw ? 'text' : 'password'}
+                      value={password}
+                      onChange={e => setPassword(e.target.value)}
+                      placeholder="••••••••"
+                      autoComplete="current-password"
+                      required
+                    />
+                    <button type="button" className="icon-right" onClick={() => setShowPw(v => !v)}>
+                      <IconEye closed={showPw} />
+                    </button>
+                  </div>
+                </div>
+
+                <div className="auth-forgot">
+                  <span>Passwort vergessen?</span>
+                </div>
+
+                {displayError && <p className="auth-error">{displayError}</p>}
+
+                <button className="auth-btn-primary" type="submit" disabled={isLoading}>
+                  {isLoading ? 'Lade...' : 'Einloggen'}
+                </button>
+
+                <div className="auth-or">oder</div>
+
+                <button type="button" className="auth-btn-secondary" onClick={() => switchTab('register')}>
+                  Noch kein Konto? Registrieren
+                </button>
+              </form>
+            )}
+
+            {tab === 'register' && step === 1 && (
+              <form className="auth-form" onSubmit={handleStep1}>
+                <div className="step-indicator">
+                  <div className="step-circle active">1</div>
+                  <span className="step-name active">Konto</span>
+                  <div className="step-line" />
+                  <div className="step-circle inactive">2</div>
+                  <span className="step-name">Clan</span>
+                </div>
+
+                <div className="auth-field">
+                  <label className="auth-field-label">Benutzername</label>
+                  <div className="auth-input-wrap">
+                    <span className="icon-left"><IconUser /></span>
+                    <input
+                      className="auth-input"
+                      value={rUsername}
+                      onChange={e => setRUsername(e.target.value)}
+                      placeholder="DeinName"
+                      autoComplete="username"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="auth-field">
+                  <label className="auth-field-label">E-Mail</label>
+                  <div className="auth-input-wrap">
+                    <span className="icon-left"><IconMail /></span>
+                    <input
+                      className="auth-input"
+                      type="email"
+                      value={rEmail}
+                      onChange={e => setREmail(e.target.value)}
+                      placeholder="deine@email.de"
+                      autoComplete="email"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="auth-field">
+                  <label className="auth-field-label">Passwort</label>
+                  <div className="auth-input-wrap">
+                    <span className="icon-left"><IconKey /></span>
+                    <input
+                      className="auth-input has-right-icon"
+                      type={showRPw ? 'text' : 'password'}
+                      value={rPassword}
+                      onChange={e => setRPassword(e.target.value)}
+                      placeholder="••••••••"
+                      autoComplete="new-password"
+                      required
+                    />
+                    <button type="button" className="icon-right" onClick={() => setShowRPw(v => !v)}>
+                      <IconEye closed={showRPw} />
+                    </button>
+                  </div>
+                </div>
+
+                <div className="auth-field">
+                  <label className="auth-field-label">Passwort Bestätigen</label>
+                  <div className="auth-input-wrap">
+                    <span className="icon-left"><IconKey /></span>
+                    <input
+                      className="auth-input has-right-icon"
+                      type={showRConfirm ? 'text' : 'password'}
+                      value={rConfirm}
+                      onChange={e => setRConfirm(e.target.value)}
+                      placeholder="••••••••"
+                      autoComplete="new-password"
+                      required
+                    />
+                    <button type="button" className="icon-right" onClick={() => setShowRConfirm(v => !v)}>
+                      <IconEye closed={showRConfirm} />
+                    </button>
+                  </div>
+                </div>
+
+                {displayError && <p className="auth-error">{displayError}</p>}
+
+                <button className="auth-btn-primary" type="submit">
+                  Weiter →
+                </button>
+
+                <div className="auth-or">oder</div>
+
+                <button type="button" className="auth-btn-secondary" onClick={() => switchTab('login')}>
+                  Bereits registriert? Einloggen
+                </button>
+              </form>
+            )}
+
+            {tab === 'register' && step === 2 && (
+              <form className="auth-form" onSubmit={handleRegisterSubmit}>
+                <div className="step-indicator">
+                  <div className="step-circle inactive">1</div>
+                  <span className="step-name">Konto</span>
+                  <div className="step-line" />
+                  <div className="step-circle active">2</div>
+                  <span className="step-name active">Clan</span>
+                </div>
+
+                <div className="auth-field">
+                  <label className="auth-field-label">Clan Tag</label>
+                  <div className="auth-input-wrap">
+                    <span className="icon-left"><IconHash /></span>
+                    <input
+                      className="auth-input"
+                      value={rClanTag}
+                      onChange={e => setRClanTag(e.target.value)}
+                      placeholder="#ABCD123"
+                      autoComplete="off"
+                    />
+                  </div>
+                </div>
+
+                <p className="hint auth-hint">
+                  Optional – kann später im Profil gesetzt werden.
+                </p>
+
+                {displayError && <p className="auth-error">{displayError}</p>}
+
+                <button className="auth-btn-primary" type="submit" disabled={isLoading}>
+                  {isLoading ? 'Registriert...' : 'Registrieren'}
+                </button>
+
+                <button type="button" className="auth-btn-secondary" onClick={() => setStep(1)}>
+                  ← Zurück
+                </button>
+              </form>
+            )}
+          </div>
         </div>
 
-        {tab === 'login' && (
-          <form className="auth-form" onSubmit={handleLoginSubmit}>
-            <div className="auth-field">
-              <label className="auth-field-label">Benutzername</label>
-              <div className="auth-input-wrap">
-                <span className="icon-left"><IconUser /></span>
-                <input
-                  className="auth-input"
-                  value={username}
-                  onChange={e => setUsername(e.target.value)}
-                  placeholder="DeinName"
-                  autoComplete="username"
-                  required
-                />
-              </div>
-            </div>
-
-            <div className="auth-field">
-              <label className="auth-field-label">Passwort</label>
-              <div className="auth-input-wrap">
-                <span className="icon-left"><IconKey /></span>
-                <input
-                  className="auth-input has-right-icon"
-                  type={showPw ? 'text' : 'password'}
-                  value={password}
-                  onChange={e => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  autoComplete="current-password"
-                  required
-                />
-                <button type="button" className="icon-right" onClick={() => setShowPw(v => !v)}>
-                  <IconEye closed={showPw} />
-                </button>
-              </div>
-            </div>
-
-            <div className="auth-forgot">
-              <span>Passwort vergessen?</span>
-            </div>
-
-            {displayError && <p className="auth-error">{displayError}</p>}
-
-            <button className="auth-btn-primary" type="submit" disabled={isLoading}>
-              {isLoading ? 'Lade...' : 'Einloggen'}
-            </button>
-
-            <div className="auth-or">oder</div>
-
-            <button type="button" className="auth-btn-secondary" onClick={() => switchTab('register')}>
-              Noch kein Konto? Registrieren
-            </button>
-          </form>
-        )}
-
-        {tab === 'register' && step === 1 && (
-          <form className="auth-form" onSubmit={handleStep1}>
-            <div className="step-indicator">
-              <div className="step-circle active">1</div>
-              <span className="step-name active">Konto</span>
-              <div className="step-line" />
-              <div className="step-circle inactive">2</div>
-              <span className="step-name">Clan</span>
-            </div>
-
-            <div className="auth-field">
-              <label className="auth-field-label">Benutzername</label>
-              <div className="auth-input-wrap">
-                <span className="icon-left"><IconUser /></span>
-                <input
-                  className="auth-input"
-                  value={rUsername}
-                  onChange={e => setRUsername(e.target.value)}
-                  placeholder="DeinName"
-                  autoComplete="username"
-                  required
-                />
-              </div>
-            </div>
-
-            <div className="auth-field">
-              <label className="auth-field-label">E-Mail</label>
-              <div className="auth-input-wrap">
-                <span className="icon-left"><IconMail /></span>
-                <input
-                  className="auth-input"
-                  type="email"
-                  value={rEmail}
-                  onChange={e => setREmail(e.target.value)}
-                  placeholder="deine@email.de"
-                  autoComplete="email"
-                  required
-                />
-              </div>
-            </div>
-
-            <div className="auth-field">
-              <label className="auth-field-label">Passwort</label>
-              <div className="auth-input-wrap">
-                <span className="icon-left"><IconKey /></span>
-                <input
-                  className="auth-input has-right-icon"
-                  type={showRPw ? 'text' : 'password'}
-                  value={rPassword}
-                  onChange={e => setRPassword(e.target.value)}
-                  placeholder="••••••••"
-                  autoComplete="new-password"
-                  required
-                />
-                <button type="button" className="icon-right" onClick={() => setShowRPw(v => !v)}>
-                  <IconEye closed={showRPw} />
-                </button>
-              </div>
-            </div>
-
-            <div className="auth-field">
-              <label className="auth-field-label">Passwort Bestätigen</label>
-              <div className="auth-input-wrap">
-                <span className="icon-left"><IconKey /></span>
-                <input
-                  className="auth-input has-right-icon"
-                  type={showRConfirm ? 'text' : 'password'}
-                  value={rConfirm}
-                  onChange={e => setRConfirm(e.target.value)}
-                  placeholder="••••••••"
-                  autoComplete="new-password"
-                  required
-                />
-                <button type="button" className="icon-right" onClick={() => setShowRConfirm(v => !v)}>
-                  <IconEye closed={showRConfirm} />
-                </button>
-              </div>
-            </div>
-
-            {displayError && <p className="auth-error">{displayError}</p>}
-
-            <button className="auth-btn-primary" type="submit">
-              Weiter →
-            </button>
-
-            <div className="auth-or">oder</div>
-
-            <button type="button" className="auth-btn-secondary" onClick={() => switchTab('login')}>
-              Bereits registriert? Einloggen
-            </button>
-          </form>
-        )}
-
-        {tab === 'register' && step === 2 && (
-          <form className="auth-form" onSubmit={handleRegisterSubmit}>
-            <div className="step-indicator">
-              <div className="step-circle inactive">1</div>
-              <span className="step-name">Konto</span>
-              <div className="step-line" />
-              <div className="step-circle active">2</div>
-              <span className="step-name active">Clan</span>
-            </div>
-
-            <div className="auth-field">
-              <label className="auth-field-label">Clan Tag</label>
-              <div className="auth-input-wrap">
-                <span className="icon-left"><IconHash /></span>
-                <input
-                  className="auth-input"
-                  value={rClanTag}
-                  onChange={e => setRClanTag(e.target.value)}
-                  placeholder="#ABCD123"
-                  autoComplete="off"
-                />
-              </div>
-            </div>
-
-            <p className="hint" style={{ fontSize: '0.85rem', margin: 0 }}>
-              Optional – kann später im Profil gesetzt werden.
+        <aside className="auth-royale-panel" aria-label="CRStats Hinweise">
+          <div className="auth-hero-copy">
+            <p className="auth-kicker">Für aktive Clans</p>
+            <h2>Dein Clan-Dashboard für optimale Clan-Performance.</h2>
+            <p>
+              CRStats bündelt Clan-Tag, Ranking und War-Checks in einer Oberfläche,
+              die schneller lesbar ist als ein Wechsel durchs Spielmenü.
             </p>
+          </div>
 
-            {displayError && <p className="auth-error">{displayError}</p>}
+          {/* <div className="auth-figure-stage" aria-hidden="true">
+            <div className="royale-figure figure-prince">
+              <span className="figure-plume" />
+              <span className="figure-head" />
+              <span className="figure-body" />
+              <span className="figure-shield" />
+              <span className="figure-spear" />
+            </div>
+            <div className="royale-tower">
+              <span className="tower-crown" />
+              <span className="tower-roof" />
+              <span className="tower-body" />
+              <span className="tower-gate" />
+            </div>
+            <div className="royale-figure figure-archer">
+              <span className="figure-hair" />
+              <span className="figure-head" />
+              <span className="figure-body" />
+              <span className="figure-bow" />
+            </div>
+            <div className="auth-arena-floor" />
+          </div> */}
 
-            <button className="auth-btn-primary" type="submit" disabled={isLoading}>
-              {isLoading ? 'Registriert...' : 'Registrieren'}
-            </button>
+          <div className="auth-carousel">
+            {carouselSlides.map((slide, index) => (
+              <article
+                key={`${slide.label}-${index}`}
+                ref={el => { cardRefs.current[index] = el }}
+                className="auth-feature-card"
+                aria-hidden={index === featureSlides.length}
+              >
+                <div>
+                  <span>{slide.stat}</span>
+                  <strong>{slide.value}</strong>
+                </div>
+                <h3>{slide.title}</h3>
+                <p>{slide.text}</p>
+              </article>
+            ))}
+          </div>
 
-            <button type="button" className="auth-btn-secondary" onClick={() => setStep(1)}>
-              ← Zurück
-            </button>
-          </form>
-        )}
-      </div>
+          <div className="auth-carousel-dots">
+            {featureSlides.map((_, index) => (
+              <button
+                key={index}
+                type="button"
+                className={`auth-carousel-dot${activeFeature % featureSlides.length === index ? ' active' : ''}`}
+                onClick={() => selectFeature(index)}
+              />
+            ))}
+          </div>
 
-      <p className="auth-footer">CRStats ist kein offizielles Supercell-Produkt.</p>
+          <p className="auth-footer">
+            Dieses Material ist inoffiziell und wird nicht von Supercell unterstützt.
+          </p>
+        </aside>
+      </section>
     </div>
   )
 }

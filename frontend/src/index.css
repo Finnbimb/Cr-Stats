@@ -4,44 +4,46 @@
    ════════════════════════════════════════════════════════════ */
 
 :root {
-  /* ── Markenfarbe (grüner Akzent) ── */
-  --color-brand:          #3ecf8e;   /* Buttons, aktive Links, Highlights */
-  --color-brand-hover:    #2bb577;   /* Hover-Zustand der Markenfarbe */
-  --color-brand-text:     #061a0e;   /* Text auf grünem Hintergrund */
-  --color-brand-bg:       rgba(62, 207, 142, 0.10);  /* dezenter grüner Hintergrund */
-  --color-brand-bg-hover: rgba(62, 207, 142, 0.18);
-  --color-brand-border:   rgba(62, 207, 142, 0.45);  /* Fokus-Rahmen bei Inputs */
+  /* ── Markenfarbe (Royale-Blau mit rotem Akzent) ── */
+  --color-brand:          #2563eb;   /* Buttons, aktive Links, Highlights */
+  --color-brand-hover:    #1d4ed8;   /* Hover-Zustand der Markenfarbe */
+  --color-brand-text:     #ffffff;   /* Text auf blauem Hintergrund */
+  --color-brand-bg:       rgba(37, 99, 235, 0.10);  /* dezenter blauer Hintergrund */
+  --color-brand-bg-hover: rgba(37, 99, 235, 0.16);
+  --color-brand-border:   rgba(37, 99, 235, 0.42);  /* Fokus-Rahmen bei Inputs */
+  --color-accent-red:     #ef4444;
+  --color-royal-gold:     #f6c34a;
 
   /* ── Fehler / Erfolg ── */
-  --color-error:   #f87171;
-  --color-success: #3ecf8e;
+  --color-error:   #dc2626;
+  --color-success: #0f9f6e;
 
   /* ── Seitenhintergrund ── */
-  --bg-page: #0d1923;
+  --bg-page: #f6f9ff;
 
   /* ── Panels und Karten ── */
-  --bg-panel:  rgba(12, 24, 36, 0.75);
-  --bg-input:  rgba(255, 255, 255, 0.05);
-  --bg-hover:  rgba(255, 255, 255, 0.06);
-  --bg-subtle: rgba(255, 255, 255, 0.07);
+  --bg-panel:  rgba(255, 255, 255, 0.88);
+  --bg-input:  #ffffff;
+  --bg-hover:  rgba(37, 99, 235, 0.06);
+  --bg-subtle: #eef5ff;
 
   /* ── Auth-Seite (Login / Registrieren) ── */
-  --bg-auth-card: rgba(10, 22, 34, 0.82);
+  --bg-auth-card: rgba(255, 255, 255, 0.94);
 
   /* ── Sidebar ── */
-  --bg-sidebar: rgba(8, 18, 28, 0.97);
+  --bg-sidebar: rgba(255, 255, 255, 0.96);
 
   /* ── Rahmen ── */
-  --border-weak:   rgba(255, 255, 255, 0.06);
-  --border-subtle: rgba(255, 255, 255, 0.08);
-  --border-soft:   rgba(255, 255, 255, 0.10);
-  --border-medium: rgba(255, 255, 255, 0.12);
+  --border-weak:   rgba(15, 23, 42, 0.06);
+  --border-subtle: rgba(15, 23, 42, 0.08);
+  --border-soft:   rgba(15, 23, 42, 0.12);
+  --border-medium: rgba(15, 23, 42, 0.16);
 
   /* ── Text ── */
-  --text-primary:  #e2e8f0;   /* Überschriften, Hauptinhalt */
-  --text-secondary: #94a3b8;  /* Labels, weniger wichtiger Text */
+  --text-primary:  #102033;   /* Überschriften, Hauptinhalt */
+  --text-secondary: #42526b;  /* Labels, weniger wichtiger Text */
   --text-muted:    #64748b;   /* Hinweise, Platzhalter-Text */
-  --text-dimmed:   #475569;   /* sehr dezenter Text, Trennlinien */
+  --text-dimmed:   #98a8bd;   /* sehr dezenter Text, Trennlinien */
 
   /* ── Eckenradien ── */
   --radius-sm: 8px;
@@ -87,10 +89,12 @@ body {
   min-height: 100vh;
   background-color: var(--bg-page);
   background-image:
-    radial-gradient(ellipse at 15% 60%, rgba(0, 110, 70, 0.13) 0%, transparent 45%),
-    radial-gradient(ellipse at 85% 20%, rgba(20, 50, 110, 0.18) 0%, transparent 45%),
-    radial-gradient(rgba(255, 255, 255, 0.055) 1px, transparent 1px);
-  background-size: 100% 100%, 100% 100%, 38px 38px;
+    radial-gradient(ellipse at 14% 78%, rgba(37, 99, 235, 0.12) 0%, transparent 42%),
+    radial-gradient(ellipse at 88% 14%, rgba(239, 68, 68, 0.10) 0%, transparent 38%),
+    radial-gradient(ellipse at 48% 8%, rgba(246, 195, 74, 0.14) 0%, transparent 34%),
+    linear-gradient(rgba(37, 99, 235, 0.055) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(37, 99, 235, 0.055) 1px, transparent 1px);
+  background-size: 100% 100%, 100% 100%, 100% 100%, 38px 38px, 38px 38px;
   background-attachment: fixed;
 }
 
