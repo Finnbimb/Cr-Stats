@@ -1,12 +1,16 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import http from 'node:http'
 
-// https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
   server: {
     proxy: {
-      '/api': 'http://178.104.170.22',
+      '/api': {
+        target: 'http://localhost:8001',
+        changeOrigin: true,
+        agent: new http.Agent({ keepAlive: false }),
+      },
     },
   },
 })
