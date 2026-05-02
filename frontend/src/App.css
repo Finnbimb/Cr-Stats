@@ -144,6 +144,8 @@
 .stat-card--tag      { --stat-accent: var(--color-accent-cyan); }
 .stat-card--rank     { --stat-accent: var(--color-royal-gold); }
 .stat-card--trophies { --stat-accent: #f97316; }
+.stat-card--germany  { --stat-accent: #8b5cf6; }
+.stat-card--war      { --stat-accent: var(--color-accent-red); }
 
 .stat-label {
   position: relative;

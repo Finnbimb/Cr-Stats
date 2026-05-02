@@ -57,6 +57,16 @@ function Dashboard({ data, error, isLoading, avgTrophies }) {
           <span className="stat-label">Ø Trophäen</span>
           <strong>{avgTrophies != null ? avgTrophies.toLocaleString() : '—'}</strong>
         </article>
+
+        <article className="panel stat-card stat-card--germany">
+          <span className="stat-label">Deutschland Rang</span>
+          <strong>{data.germany_rank != null ? `#${data.germany_rank}` : '—'}</strong>
+        </article>
+
+        <article className="panel stat-card stat-card--war">
+          <span className="stat-label">DE War Rang</span>
+          <strong>{data.germany_war_rank != null ? `#${data.germany_war_rank}` : '—'}</strong>
+        </article>
       </div>
     </section>
   )
