@@ -7,7 +7,19 @@
   max-width: 960px;
   margin: 0 auto;
   padding: 2rem 1rem 3rem;
+  padding-right: calc(52px + 1.5rem);  /* sidebar geschlossen */
   transition: padding-right 0.2s ease;
+}
+
+.app-shell.sidebar-is-open {
+  padding-right: calc(220px + 1.5rem); /* sidebar offen */
+}
+
+@media (max-width: 700px) {
+  .app-shell,
+  .app-shell.sidebar-is-open {
+    padding: 1.5rem 1rem 3rem; /* auf Handy: gleichmäßig links/rechts */
+  }
 }
 
 .topbar {

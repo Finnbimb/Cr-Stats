@@ -142,7 +142,7 @@ function App() {
   }
 
   return (
-    <main className="app-shell" style={{ paddingRight: `calc(${sidebarOpen ? 220 : 52}px + 1rem)` }}>
+    <main className={`app-shell${sidebarOpen ? ' sidebar-is-open' : ''}`}>
       {currentPage === 'dashboard' ? (
         <>
           <header className="topbar">

@@ -145,6 +145,8 @@ function Login({ error, isLoading, onLogin, onRegister }) {
   const resetTimeoutRef = useRef(null)
   const skipNextScrollRef = useRef(false)
   const cardRefs = useRef([])
+  const trackRef = useRef(null)
+  const isProgrammaticRef = useRef(false)
 
   const startTimer = useCallback(() => {
     clearInterval(timerRef.current)
@@ -152,6 +154,14 @@ function Login({ error, isLoading, onLogin, onRegister }) {
       setActiveFeature(f => f + 1)
     }, SLIDE_INTERVAL)
   }, [])
+
+  function scrollToCard(index, behavior = 'smooth') {
+    const el = trackRef.current
+    const card = cardRefs.current[index]
+    if (!el || !card) return
+    isProgrammaticRef.current = true
+    el.scrollTo({ left: card.offsetLeft - 20, behavior })
+  }
 
   function selectFeature(index) {
     clearTimeout(resetTimeoutRef.current)
@@ -173,25 +183,48 @@ function Login({ error, isLoading, onLogin, onRegister }) {
       return
     }
 
-    cardRefs.current[activeFeature]?.scrollIntoView({
-      behavior: 'smooth',
-      inline: 'start',
-      block: 'nearest',
-    })
+    scrollToCard(activeFeature)
 
     if (activeFeature === featureSlides.length) {
       clearTimeout(resetTimeoutRef.current)
       resetTimeoutRef.current = setTimeout(() => {
-        cardRefs.current[0]?.scrollIntoView({
-          behavior: 'auto',
-          inline: 'start',
-          block: 'nearest',
-        })
+        scrollToCard(0, 'instant')
         skipNextScrollRef.current = true
         setActiveFeature(0)
       }, LOOP_RESET_DELAY)
     }
   }, [activeFeature])
+
+  useEffect(() => {
+    const el = trackRef.current
+    if (!el) return
+
+    function handleScrollDone() {
+      if (isProgrammaticRef.current) {
+        isProgrammaticRef.current = false
+        return
+      }
+      const scrollLeft = el.scrollLeft
+      let closest = 0
+      let minDist = Infinity
+      cardRefs.current.forEach((card, i) => {
+        if (!card) return
+        const dist = Math.abs((card.offsetLeft - 20) - scrollLeft)
+        if (dist < minDist) { minDist = dist; closest = i }
+      })
+      setActiveFeature(closest % featureSlides.length)
+      startTimer()
+    }
+
+    if ('onscrollend' in el) {
+      el.addEventListener('scrollend', handleScrollDone)
+      return () => el.removeEventListener('scrollend', handleScrollDone)
+    }
+    let t
+    function onScroll() { clearTimeout(t); t = setTimeout(handleScrollDone, 200) }
+    el.addEventListener('scroll', onScroll)
+    return () => { el.removeEventListener('scroll', onScroll); clearTimeout(t) }
+  }, [startTimer])
 
   const displayError = localError || error
 
@@ -448,7 +481,7 @@ function Login({ error, isLoading, onLogin, onRegister }) {
             <div className="auth-arena-floor" />
           </div> */}
 
-          <div className="auth-carousel">
+          <div ref={trackRef} className="auth-carousel">
             {carouselSlides.map((slide, index) => (
               <article
                 key={`${slide.label}-${index}`}
