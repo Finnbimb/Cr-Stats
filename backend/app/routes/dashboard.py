@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 
 from app.dependencies import get_current_db_user, get_db
 from app.models import User
-from app.services.clash_royale import fetch_user_clan_ranking, fetch_clan_by_tag
+from app.services.clash_royale import fetch_user_clan_ranking
 
 router = APIRouter()
 
@@ -53,26 +53,4 @@ def get_dashboard(user: User = Depends(get_current_db_user), db: Session = Depen
 # @router.get("/dashboard/current-riverrace")
 # def get_riverrace(user: User = Depends(get_current_db_user)):
 #     return get_current_riverrace(user)
-
-
-@router.get("/members")
-def get_members(user: User = Depends(get_current_db_user)):
-    if not user.clan_tag:
-        raise HTTPException(status_code=400, detail="Kein Clan-Tag gespeichert")
-
-    clan_data = fetch_clan_by_tag(user.clan_tag)
-    members = clan_data.get("memberList", [])
-
-    return {
-        "members": [
-            {
-                "tag": m.get("tag"),
-                "name": m.get("name"),
-                "trophies": m.get("trophies"),
-                "role": m.get("role"),
-                "clan_rank": m.get("clanRank"),
-            }
-            for m in members
-        ]
-    }
  

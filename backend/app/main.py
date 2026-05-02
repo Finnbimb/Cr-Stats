@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import CORS_ORIGINS
 from app.database import init_database
-from app.routes import auth, dashboard, misc, profile
+from app.routes import auth, dashboard, members, misc, profile
 from app.services.war_tracking import poll_war_data_loop
 
 app = FastAPI(title="CrStats API")
@@ -27,3 +27,4 @@ app.include_router(misc.router)
 app.include_router(auth.router)
 app.include_router(profile.router)
 app.include_router(dashboard.router)
+app.include_router(members.router)
