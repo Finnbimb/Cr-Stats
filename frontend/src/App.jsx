@@ -163,6 +163,7 @@ function App() {
           members={membersData}
           error={membersError}
           isLoading={membersLoading}
+          onRefresh={() => setMembersData(null)}
           onUnauthorized={handleLogout}
         />
       ) : (
