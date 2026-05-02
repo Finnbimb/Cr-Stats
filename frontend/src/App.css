@@ -329,6 +329,7 @@ input:focus {
 
 .war-top {
   max-width: 440px;
+  margin-top: 1rem;
 }
 
 .war-top-header {
