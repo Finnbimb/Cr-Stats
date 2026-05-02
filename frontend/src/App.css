@@ -18,7 +18,7 @@
 @media (max-width: 700px) {
   .app-shell,
   .app-shell.sidebar-is-open {
-    padding: 1.5rem 1rem 3rem; /* auf Handy: gleichmäßig links/rechts */
+    padding: 1.5rem 1rem calc(56px + 1.5rem); /* unten: Platz für Bottom-Nav */
   }
 }
 

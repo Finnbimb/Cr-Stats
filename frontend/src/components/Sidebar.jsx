@@ -70,22 +70,22 @@ export default function Sidebar({ token, currentPage, onLogout, open, onToggle }
             className={`sidebar-link ${currentPage === 'dashboard' ? 'active' : ''}`}
           >
             <IconGrid />
-            {open && <span>Dashboard</span>}
+            <span className="sidebar-link-label">Dashboard</span>
           </a>
-          
+
           <a
             href="#/members"
             className={`sidebar-link ${currentPage === 'members' ? 'active' : ''}`}
           >
             <IconUsers />
-            {open && <span>Mitglieder</span>}
+            <span className="sidebar-link-label">Mitglieder</span>
           </a>
         </nav>
 
         <div className="sidebar-footer">
           <button className="sidebar-avatar-btn" onClick={() => setProfileOpen(v => !v)}>
             <span className="sidebar-avatar-circle">{initial}</span>
-            {open && <span className="sidebar-avatar-name">{username}</span>}
+            <span className="sidebar-avatar-name">{username}</span>
           </button>
         </div>
       </aside>

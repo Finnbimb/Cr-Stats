@@ -26,7 +26,7 @@ function App() {
   const [authError, setAuthError] = useState('')
   const [isAuthLoading, setIsAuthLoading] = useState(false)
 
-  const [sidebarOpen, setSidebarOpen] = useState(true)
+  const [sidebarOpen, setSidebarOpen] = useState(false)
 
   const [dashboardData, setDashboardData] = useState(null)
   const [dashboardError, setDashboardError] = useState('')

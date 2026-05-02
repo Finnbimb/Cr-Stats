@@ -115,6 +115,14 @@
   padding: 0.6rem;
 }
 
+.sidebar-closed .sidebar-link-label {
+  display: none;
+}
+
+.sidebar-closed .sidebar-avatar-name {
+  display: none;
+}
+
 
 /* ════════════════════════════════════════════════════════════
    SIDEBAR – Fußzeile & Avatar-Button
@@ -254,4 +262,90 @@
 
 .profile-popup-logout:hover {
   background: rgba(248, 113, 113, 0.18);
+}
+
+
+/* ════════════════════════════════════════════════════════════
+   MOBILE – Bottom Navigation Bar
+   Auf kleinen Bildschirmen wird die Sidebar zur Bottom-Nav.
+   ════════════════════════════════════════════════════════════ */
+
+@media (max-width: 700px) {
+  .sidebar,
+  .sidebar-open,
+  .sidebar-closed {
+    position: fixed;
+    bottom: 0;
+    top: auto;
+    left: 0;
+    right: 0;
+    width: 100% !important;
+    height: auto;
+    flex-direction: row;
+    align-items: stretch;
+    border-left: none;
+    border-top: 1px solid var(--border-weak);
+    transition: none;
+  }
+
+  .sidebar-header {
+    display: none;
+  }
+
+  .sidebar-nav {
+    flex-direction: row;
+    flex: 1;
+    padding: 0;
+    gap: 0;
+    align-items: stretch;
+  }
+
+  .sidebar-link {
+    flex: 1;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 0.2rem;
+    padding: 0.5rem 0.25rem;
+    border-radius: 0;
+    font-size: 0.68rem;
+    min-height: 56px;
+    white-space: nowrap;
+  }
+
+  .sidebar-link-label {
+    display: block !important;
+  }
+
+  .sidebar-footer {
+    border-top: none;
+    border-left: 1px solid var(--border-weak);
+    padding: 0;
+  }
+
+  .sidebar-avatar-btn {
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.2rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: 0;
+    min-height: 56px;
+    min-width: 64px;
+  }
+
+  .sidebar-avatar-name {
+    display: none;
+  }
+
+  .sidebar-avatar-circle {
+    width: 26px;
+    height: 26px;
+    font-size: 0.72rem;
+  }
+
+  .profile-popup-card {
+    bottom: calc(56px + 0.5rem);
+    right: 0.75rem;
+  }
 }
