@@ -74,7 +74,7 @@ def normalize_player_tag(player_tag: str):
 
     return tag
 
-
+# used for clan-tag input, to save every tag equally
 def normalize_clan_tag(clan_tag: str):
     tag = clan_tag.strip().upper()
     if not tag:
