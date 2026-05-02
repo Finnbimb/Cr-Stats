@@ -138,7 +138,7 @@ function App() {
           />
         </>
       ) : currentPage === 'members' ? (
-        <Members />
+        <Members token={token} onUnauthorized={handleLogout} />
       ) : (
         <Profile
           token={token}

@@ -82,6 +82,12 @@ export async function updateClanTag(token, clanTag) {
   })
 }
 
+export async function getMembers(token) {
+  return apiRequest('/members', {
+    headers: createAuthHeaders(token),
+  })
+}
+
 // export async function getCurrentRiverRace(token) {
 //   return apiRequest('/dashboard/current-riverrace', {
 //     headers: createAuthHeaders(token),

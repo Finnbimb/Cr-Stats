@@ -134,6 +134,55 @@
 
 
 /* ════════════════════════════════════════════════════════════
+   MITGLIEDER-TABELLE
+   ════════════════════════════════════════════════════════════ */
+
+.members-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.members-table th,
+.members-table td {
+  padding: 0.65rem 0.75rem;
+  text-align: left;
+}
+
+.members-table th {
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.members-table tr:not(:last-child) td {
+  border-bottom: 1px solid var(--border-weak);
+}
+
+.members-rank  { color: var(--text-muted); width: 2.5rem; }
+.members-name  { font-weight: 600; color: var(--text-primary); }
+.members-trophies { font-weight: 600; }
+.members-cw    { color: var(--text-muted); }
+
+/* Rollen-Badge */
+.members-role {
+  display: inline-block;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.members-role--leader    { background: rgba(246, 195, 74, 0.15); color: #b45309; }
+.members-role--coLeader  { background: rgba(62, 207, 142, 0.12); color: var(--color-brand); }
+.members-role--elder     { background: rgba(99, 102, 241, 0.12); color: #6366f1; }
+.members-role--member    { background: var(--bg-input); color: var(--text-muted); }
+
+
+/* ════════════════════════════════════════════════════════════
    GLOBALE INTERAKTIVE ELEMENTE
    Basis-Styles für Button und Input – alle Seiten.
    ════════════════════════════════════════════════════════════ */
