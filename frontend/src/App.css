@@ -7,6 +7,7 @@
   max-width: 960px;
   margin: 0 auto;
   padding: 2rem 1rem 3rem;
+  transition: padding-right 0.2s ease;
 }
 
 .topbar {

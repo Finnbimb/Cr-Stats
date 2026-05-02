@@ -26,6 +26,8 @@ function App() {
   const [authError, setAuthError] = useState('')
   const [isAuthLoading, setIsAuthLoading] = useState(false)
 
+  const [sidebarOpen, setSidebarOpen] = useState(true)
+
   const [dashboardData, setDashboardData] = useState(null)
   const [dashboardError, setDashboardError] = useState('')
   const [dashboardLoading, setDashboardLoading] = useState(false)
@@ -140,7 +142,7 @@ function App() {
   }
 
   return (
-    <main className="app-shell">
+    <main className="app-shell" style={{ paddingRight: `calc(${sidebarOpen ? 220 : 52}px + 1rem)` }}>
       {currentPage === 'dashboard' ? (
         <>
           <header className="topbar">
@@ -174,7 +176,7 @@ function App() {
         />
       )}
 
-      <Sidebar token={token} currentPage={currentPage} onLogout={handleLogout} />
+      <Sidebar token={token} currentPage={currentPage} onLogout={handleLogout} open={sidebarOpen} onToggle={() => setSidebarOpen(v => !v)} />
     </main>
   )
 }

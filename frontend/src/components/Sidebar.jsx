@@ -49,8 +49,7 @@ function IconUsers() {
   )
 }
 
-export default function Sidebar({ token, currentPage, onLogout }) {
-  const [open, setOpen] = useState(true)
+export default function Sidebar({ token, currentPage, onLogout, open, onToggle }) {
   const [profileOpen, setProfileOpen] = useState(false)
   const username = getUsernameFromToken(token)
   const initial = username[0]?.toUpperCase() || '?'
@@ -60,7 +59,7 @@ export default function Sidebar({ token, currentPage, onLogout }) {
       <aside className={`sidebar ${open ? 'sidebar-open' : 'sidebar-closed'}`}>
         <div className="sidebar-header">
           {open && <span className="sidebar-brand">Navigation</span>}
-          <button className="sidebar-toggle-btn" onClick={() => setOpen(v => !v)}>
+          <button className="sidebar-toggle-btn" onClick={onToggle}>
             {open ? <IconChevronRight /> : <IconChevronLeft />}
           </button>
         </div>
