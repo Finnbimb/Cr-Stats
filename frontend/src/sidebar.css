@@ -1,0 +1,257 @@
+/* ════════════════════════════════════════════════════════════
+   SIDEBAR – Rahmen & Größen
+   Feste Position rechts, auf-/zugeklappt.
+   ════════════════════════════════════════════════════════════ */
+
+.sidebar {
+  position: fixed;
+  right: 0;
+  top: 0;
+  height: 100vh;
+  background: var(--bg-sidebar);    /* → Farbe in index.css: --bg-sidebar */
+  border-left: 1px solid var(--border-weak);
+  display: flex;
+  flex-direction: column;
+  backdrop-filter: blur(16px);
+  z-index: 200;
+  transition: width 0.2s ease;
+  overflow: hidden;
+}
+
+.sidebar-open   { width: 220px; }
+.sidebar-closed { width: 52px; }
+
+
+/* ════════════════════════════════════════════════════════════
+   SIDEBAR – Kopfzeile
+   App-Name und Auf/Zu-Knopf.
+   ════════════════════════════════════════════════════════════ */
+
+.sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 0.75rem;
+  height: 56px;
+  border-bottom: 1px solid var(--border-weak);
+  flex-shrink: 0;
+}
+
+.sidebar-closed .sidebar-header {
+  justify-content: center;
+}
+
+.sidebar-brand {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-dimmed);
+  white-space: nowrap;
+}
+
+.sidebar-toggle-btn {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm);
+  flex-shrink: 0;
+  transition: color 0.15s, background 0.15s;
+}
+
+.sidebar-toggle-btn:hover {
+  color: var(--text-primary);
+  background: var(--bg-hover);
+}
+
+
+/* ════════════════════════════════════════════════════════════
+   SIDEBAR – Navigation
+   Links zu den Seiten der App.
+   Aktive Farbe → index.css: --color-brand
+   ════════════════════════════════════════════════════════════ */
+
+.sidebar-nav {
+  flex: 1;
+  padding: 0.75rem 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.sidebar-link {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem 0.65rem;
+  border-radius: var(--radius-md);
+  color: var(--text-muted);
+  text-decoration: none;
+  font-size: 0.88rem;
+  font-weight: 500;
+  white-space: nowrap;
+  transition: background 0.15s, color 0.15s;
+}
+
+.sidebar-link:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.sidebar-link.active {
+  background: var(--color-brand-bg);
+  color: var(--color-brand);
+}
+
+.sidebar-closed .sidebar-link {
+  justify-content: center;
+  padding: 0.6rem;
+}
+
+
+/* ════════════════════════════════════════════════════════════
+   SIDEBAR – Fußzeile & Avatar-Button
+   Benutzer-Profil unten in der Sidebar.
+   ════════════════════════════════════════════════════════════ */
+
+.sidebar-footer {
+  padding: 0.75rem 0.5rem;
+  border-top: 1px solid var(--border-weak);
+}
+
+.sidebar-avatar-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  width: 100%;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.45rem 0.65rem;
+  border-radius: var(--radius-md);
+  transition: background 0.15s;
+}
+
+.sidebar-avatar-btn:hover {
+  background: var(--bg-hover);
+}
+
+.sidebar-closed .sidebar-avatar-btn {
+  justify-content: center;
+  padding: 0.45rem;
+}
+
+.sidebar-avatar-circle {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--color-brand), var(--color-brand-hover));
+  color: var(--color-brand-text);
+  font-weight: 700;
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.sidebar-avatar-name {
+  color: var(--text-primary);
+  font-size: 0.88rem;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+
+/* ════════════════════════════════════════════════════════════
+   PROFIL-POPUP
+   Kleine Karte die sich über dem Avatar-Button öffnet.
+   ════════════════════════════════════════════════════════════ */
+
+.profile-popup-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+}
+
+.profile-popup-card {
+  position: fixed;
+  bottom: 72px;
+  background: var(--bg-sidebar);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-xl);
+  padding: 1.25rem;
+  min-width: 190px;
+  backdrop-filter: blur(16px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  z-index: 301;
+}
+
+.profile-popup-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--color-brand), var(--color-brand-hover));
+  color: var(--color-brand-text);
+  font-weight: 700;
+  font-size: 1.3rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.profile-popup-username {
+  margin: 0;
+  font-weight: 700;
+  color: var(--text-primary);
+  font-size: 1rem;
+}
+
+.profile-popup-action {
+  display: block;
+  width: 100%;
+  text-align: center;
+  padding: 0.6rem;
+  background: var(--color-brand-bg);
+  color: var(--color-brand);
+  border-radius: var(--radius-md);
+  text-decoration: none;
+  font-size: 0.88rem;
+  font-weight: 600;
+  transition: background 0.15s;
+}
+
+.profile-popup-action:hover {
+  background: var(--color-brand-bg-hover);
+}
+
+/* Logout-Button → Farbe bewusst nicht in Variablen, da spezifisch für diesen einen Button */
+.profile-popup-logout {
+  width: 100%;
+  padding: 0.6rem;
+  background: rgba(248, 113, 113, 0.08);
+  border: 1px solid rgba(248, 113, 113, 0.18);
+  border-radius: var(--radius-md);
+  color: var(--color-error);
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.profile-popup-logout:hover {
+  background: rgba(248, 113, 113, 0.18);
+}

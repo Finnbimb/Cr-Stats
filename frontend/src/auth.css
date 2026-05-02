@@ -1,0 +1,311 @@
+/* ════════════════════════════════════════════════════════════
+   AUTH-SEITE – Hintergrund & Zentrierung
+   Äußeres Layout der Login/Register-Seite.
+   ════════════════════════════════════════════════════════════ */
+
+.auth-layout {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1rem;
+  gap: 1.5rem;
+}
+
+
+/* ════════════════════════════════════════════════════════════
+   AUTH-SEITE – Logo & Titel
+   Icon, App-Name und Untertitel über der Karte.
+   ════════════════════════════════════════════════════════════ */
+
+.auth-brand {
+  text-align: center;
+}
+
+.auth-logo {
+  width: 68px;
+  height: 68px;
+  background: linear-gradient(135deg, #7c3aed, #4f46e5);
+  border-radius: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.1rem;
+  margin: 0 auto 0.75rem;
+  box-shadow: 0 8px 28px rgba(79, 70, 229, 0.45);
+}
+
+.auth-title {
+  margin: 0 0 0.2rem;
+  font-size: 1.85rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+}
+
+.auth-subtitle {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.95rem;
+}
+
+
+/* ════════════════════════════════════════════════════════════
+   AUTH-SEITE – Karte
+   Weiße Box mit Glaseffekt um das Formular.
+   ════════════════════════════════════════════════════════════ */
+
+.auth-card {
+  width: min(100%, 480px);
+  background: var(--bg-auth-card);   /* → geändert in index.css: --bg-auth-card */
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-2xl);
+  padding: 1.5rem;
+  backdrop-filter: blur(12px);
+}
+
+
+/* ════════════════════════════════════════════════════════════
+   AUTH-SEITE – Tabs (Einloggen / Registrieren)
+   ════════════════════════════════════════════════════════════ */
+
+.auth-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  background: var(--bg-input);
+  border-radius: var(--radius-lg);
+  padding: 4px;
+  gap: 4px;
+  margin-bottom: 1.5rem;
+}
+
+.auth-tab {
+  padding: 0.7rem;
+  border: none;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--text-muted);
+  font-weight: 700;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.15s;
+  width: 100%;
+}
+
+.auth-tab.active {
+  background: var(--color-brand);    /* → Farbe in index.css: --color-brand */
+  color: var(--color-brand-text);
+}
+
+
+/* ════════════════════════════════════════════════════════════
+   AUTH-SEITE – Schritt-Anzeige (Register-Wizard)
+   ════════════════════════════════════════════════════════════ */
+
+.step-indicator {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.step-circle {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.step-circle.active   { background: var(--color-brand); color: var(--color-brand-text); }
+.step-circle.inactive { background: var(--bg-subtle); color: var(--text-muted); }
+
+.step-name        { font-size: 0.85rem; font-weight: 600; color: var(--text-muted); }
+.step-name.active { color: var(--color-brand); }
+
+.step-line {
+  flex: 1;
+  height: 1px;
+  background: var(--border-soft);
+}
+
+
+/* ════════════════════════════════════════════════════════════
+   AUTH-SEITE – Formular-Felder
+   Labels, Inputs mit Icon links/rechts.
+   ════════════════════════════════════════════════════════════ */
+
+.auth-form {
+  display: grid;
+  gap: 1rem;
+}
+
+.auth-field {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.auth-field-label {
+  color: var(--text-secondary);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.auth-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.auth-input-wrap .icon-left {
+  position: absolute;
+  left: 0.85rem;
+  color: var(--text-dimmed);
+  display: flex;
+  align-items: center;
+  pointer-events: none;
+}
+
+.auth-input-wrap .icon-right {
+  position: absolute;
+  right: 0.85rem;
+  background: none;
+  border: none;
+  color: var(--text-dimmed);
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  line-height: 1;
+}
+
+.auth-input-wrap .icon-right:hover {
+  color: var(--text-secondary);
+}
+
+.auth-input {
+  width: 100%;
+  background: var(--bg-input);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-lg);
+  padding: 0.85rem 1rem 0.85rem 2.75rem;
+  color: var(--text-primary);
+  font-size: 0.95rem;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.auth-input.has-right-icon {
+  padding-right: 2.75rem;
+}
+
+.auth-input:focus {
+  outline: none;
+  border-color: var(--color-brand-border);
+  background: var(--bg-subtle);
+}
+
+.auth-input::placeholder {
+  color: var(--text-dimmed);
+}
+
+
+/* ════════════════════════════════════════════════════════════
+   AUTH-SEITE – Buttons
+   Primär (grün, ausgefüllt) und Sekundär (transparent, Rahmen).
+   Farbe ändern → index.css: --color-brand
+   ════════════════════════════════════════════════════════════ */
+
+.auth-btn-primary {
+  width: 100%;
+  padding: 0.9rem;
+  background: var(--color-brand);
+  border: none;
+  border-radius: var(--radius-lg);
+  color: var(--color-brand-text);
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.15s;
+  letter-spacing: 0.01em;
+}
+
+.auth-btn-primary:hover:not(:disabled) {
+  opacity: 0.88;
+}
+
+.auth-btn-primary:disabled {
+  opacity: 0.55;
+  cursor: wait;
+}
+
+.auth-btn-secondary {
+  width: 100%;
+  padding: 0.85rem;
+  background: transparent;
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-lg);
+  color: var(--color-brand);
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+
+.auth-btn-secondary:hover {
+  border-color: var(--color-brand-border);
+}
+
+
+/* ════════════════════════════════════════════════════════════
+   AUTH-SEITE – Sonstige Elemente
+   Trennlinie, "Passwort vergessen", Fehlermeldung, Footer.
+   ════════════════════════════════════════════════════════════ */
+
+.auth-or {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: var(--text-dimmed);
+  font-size: 0.85rem;
+}
+
+.auth-or::before,
+.auth-or::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border-subtle);
+}
+
+.auth-forgot {
+  text-align: right;
+  font-size: 0.85rem;
+  margin-top: -0.25rem;
+}
+
+.auth-forgot span {
+  color: var(--text-muted);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: default;
+}
+
+.auth-error {
+  color: var(--color-error);
+  font-size: 0.875rem;
+  margin: 0;
+}
+
+.auth-footer {
+  color: var(--text-dimmed);
+  font-size: 0.8rem;
+  text-align: center;
+  margin: 0;
+}

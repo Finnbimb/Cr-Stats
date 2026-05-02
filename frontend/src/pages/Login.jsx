@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import '../auth.css'
 
 function IconUser() {
   return (
@@ -118,7 +119,7 @@ function Login({ error, isLoading, onLogin, onRegister }) {
           <button
             type="button"
             className={`auth-tab${tab === 'login' ? ' active' : ''}`}
-            onClick={() => switchTab('login')}
+            onClick={() => switchTab('login')} 
           >
             Einloggen
           </button>

@@ -2,13 +2,14 @@ import { useEffect, useState } from 'react'
 import './App.css'
 import Dashboard from './pages/Dashboard.jsx'
 import Login from './pages/Login.jsx'
+import Members from './pages/Members.jsx'
 import Profile from './pages/Profile.jsx'
 import Sidebar from './components/Sidebar.jsx'
 import { loginUser, registerUser, updateClanTag, getDashboard } from './services/api.js'
 
 function getPageFromHash() {
   const page = window.location.hash.replace('#/', '')
-  if (page === 'profile' || page === 'login') return page
+  if (page === 'profile' || page === 'login' || page === 'members') return page
   return 'dashboard'
 }
 
@@ -119,21 +120,25 @@ function App() {
 
   return (
     <main className="app-shell">
-      <header className="topbar">
-        <div>
-          <p className="eyebrow">CrStats</p>
-          <h1>Clan Dashboard</h1>
-        </div>
-      </header>
-
       {currentPage === 'dashboard' ? (
-        <Dashboard
-          data={dashboardData}
-          error={dashboardError}
-          isLoading={dashboardLoading}
-          onRefresh={invalidateDashboard}
-          onUnauthorized={handleLogout}
-        />
+        <>
+          <header className="topbar">
+            <div>
+              <p className="eyebrow">CrStats</p>
+              <h1>Clan Dashboard</h1>
+            </div>
+          </header>
+
+          <Dashboard
+            data={dashboardData}
+            error={dashboardError}
+            isLoading={dashboardLoading}
+            onRefresh={invalidateDashboard}
+            onUnauthorized={handleLogout}
+          />
+        </>
+      ) : currentPage === 'members' ? (
+        <Members />
       ) : (
         <Profile
           token={token}
