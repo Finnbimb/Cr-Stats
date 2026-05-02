@@ -5,7 +5,7 @@ import Login from './pages/Login.jsx'
 import Members from './pages/Members.jsx'
 import Profile from './pages/Profile.jsx'
 import Sidebar from './components/Sidebar.jsx'
-import { loginUser, registerUser, updateClanTag, getDashboard } from './services/api.js'
+import { loginUser, registerUser, updateClanTag, getDashboard, getMembers } from './services/api.js'
 
 function getPageFromHash() {
   const page = window.location.hash.replace('#/', '')
@@ -30,6 +30,10 @@ function App() {
   const [dashboardError, setDashboardError] = useState('')
   const [dashboardLoading, setDashboardLoading] = useState(false)
 
+  const [membersData, setMembersData] = useState(null)
+  const [membersError, setMembersError] = useState('')
+  const [membersLoading, setMembersLoading] = useState(false)
+
   useEffect(() => {
     if (!token || currentPage !== 'dashboard' || dashboardData !== null) return
     let isActive = true
@@ -45,6 +49,22 @@ function App() {
       .finally(() => { if (isActive) setDashboardLoading(false) })
     return () => { isActive = false }
   }, [currentPage, token, dashboardData])
+
+  useEffect(() => {
+    if (!token || currentPage !== 'members' || membersData !== null) return
+    let isActive = true
+    setMembersLoading(true)
+    setMembersError('')
+    getMembers(token)
+      .then(data => { if (isActive) setMembersData(data.members) })
+      .catch(err => {
+        if (!isActive) return
+        if (err.status === 401) { handleLogout(); return }
+        setMembersError(err.message)
+      })
+      .finally(() => { if (isActive) setMembersLoading(false) })
+    return () => { isActive = false }
+  }, [currentPage, token, membersData])
 
   useEffect(() => {
     function handleHashChange() {
@@ -100,6 +120,7 @@ function App() {
     setToken('')
     setAuthError('')
     setDashboardData(null)
+    setMembersData(null)
     navigateTo('login')
   }
 
@@ -138,7 +159,12 @@ function App() {
           />
         </>
       ) : currentPage === 'members' ? (
-        <Members token={token} onUnauthorized={handleLogout} />
+        <Members
+          members={membersData}
+          error={membersError}
+          isLoading={membersLoading}
+          onUnauthorized={handleLogout}
+        />
       ) : (
         <Profile
           token={token}

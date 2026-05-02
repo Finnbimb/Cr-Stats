@@ -1,33 +1,11 @@
-import { useEffect, useState } from 'react'
-import { getMembers } from '../services/api.js'
-
 const ROLE_LABEL = {
-  leader:    'Anführer',
-  coLeader:  'Vize',
-  elder:     'Ältester',
-  member:    'Mitglied',
+  leader:   'Anführer',
+  coLeader: 'Vize',
+  elder:    'Ältester',
+  member:   'Mitglied',
 }
 
-function Members({ token, onUnauthorized }) {
-  const [members, setMembers] = useState(null)
-  const [error, setError]     = useState('')
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    let active = true
-    setLoading(true)
-    setError('')
-    getMembers(token)
-      .then(data => { if (active) setMembers(data.members) })
-      .catch(err => {
-        if (!active) return
-        if (err.status === 401) { onUnauthorized(); return }
-        setError(err.message)
-      })
-      .finally(() => { if (active) setLoading(false) })
-    return () => { active = false }
-  }, [token])
-
+function Members({ members, error, isLoading }) {
   return (
     <section className="page-stack">
       <header className="topbar">
@@ -38,8 +16,8 @@ function Members({ token, onUnauthorized }) {
       </header>
 
       <div className="panel">
-        {loading && <p className="hint">Lade Mitglieder…</p>}
-        {error   && <p className="message error">{error}</p>}
+        {isLoading && <p className="hint">Lade Mitglieder…</p>}
+        {error     && <p className="message error">{error}</p>}
 
         {members && (
           <table className="members-table">
