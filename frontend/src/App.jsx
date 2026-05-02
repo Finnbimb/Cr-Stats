@@ -148,7 +148,7 @@ function App() {
         <>
           <header className="topbar">
             <div>
-              <p className="eyebrow">CrStats</p>
+              <p className="eyebrow">{dashboardData?.clan_name || 'Clan Dashboard'}</p>
               <h1>Clan Dashboard</h1>
             </div>
           </header>

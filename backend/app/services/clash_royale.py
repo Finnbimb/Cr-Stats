@@ -130,6 +130,24 @@ def fetch_user_clan_ranking(user: User):
     clans = response.json().get("items", [])
     return find_clan_by_tag(clans, user.clan_tag)
 
+def fetch_user_clanwar_ranking(user: User):
+    try:
+        response = requests.get(
+            f"https://api.clashroyale.com/v1/locations/{user.location_id}/rankings/clanwars",
+            headers=get_cr_api_headers(),
+            timeout=10,
+        )
+    except requests.RequestException as exc:
+        raise HTTPException(
+            status_code=502,
+            detail="Failed to load clan war ranking from Clash Royale API",
+        ) from exc
+
+    raise_for_clash_api_error(response, "Failed to load clan war ranking from Clash Royale API")
+
+    clans = response.json().get("items", [])
+    return find_clan_by_tag(clans, user.clan_tag)
+
 def fetch_ranked_clan_for_location(*, ranking_path: str, fallback_detail: str, clan_tag: str = OUR_CLAN_TAG):
     locations = fetch_locations()
     germany = next((loc for loc in locations if loc["name"] == GERMANY_LOCATION_NAME), None)
