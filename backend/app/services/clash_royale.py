@@ -128,7 +128,7 @@ def fetch_user_clan_ranking(user: User):
     raise_for_clash_api_error(response, "Failed to load clan ranking from Clash Royale API")
 
     clans = response.json().get("items", [])
-    return next((clan for clan in clans if clan.get("tag") == user.clan_tag), None)
+    return find_clan_by_tag(clans, user.clan_tag)
 
 def fetch_ranked_clan_for_location(*, ranking_path: str, fallback_detail: str, clan_tag: str = OUR_CLAN_TAG):
     locations = fetch_locations()
@@ -151,7 +151,7 @@ def fetch_ranked_clan_for_location(*, ranking_path: str, fallback_detail: str, c
     raise_for_clash_api_error(response, fallback_detail)
 
     clans = response.json().get("items", [])
-    return next((clan for clan in clans if clan.get("tag") == clan_tag), None)
+    return find_clan_by_tag(clans, clan_tag)
 
 
 # USED BY BOT TO FETCH RANKING IN GERMANY LOCATION
@@ -339,4 +339,11 @@ def find_clan_by_tag(clans: list[dict], clan_tag: str):
     if not clans:
         return None
 
-    return next((clan for clan in clans if clan.get("tag") == clan_tag), None)
+    normalized_tag = normalize_clan_tag(clan_tag)
+    return next(
+        (
+            clan for clan in clans
+            if clan.get("tag") and normalize_clan_tag(clan.get("tag")) == normalized_tag
+        ),
+        None,
+    )

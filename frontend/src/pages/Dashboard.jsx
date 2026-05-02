@@ -37,9 +37,6 @@ function Dashboard({ data, error, isLoading, avgTrophies }) {
       <div className="panel">
         <p className="eyebrow">Dashboard</p>
         <h2>Deine aktuellen Stats</h2>
-        <p className="hint">
-          Diese Werte kommen direkt vom Backend-Endpunkt `/dashboard`.
-        </p>
       </div>
 
       <div className="card-grid">
