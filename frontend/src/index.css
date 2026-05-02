@@ -5,27 +5,30 @@
 
 :root {
   /* ── Markenfarbe (Royale-Blau mit rotem Akzent) ── */
-  --color-brand:          #2563eb;   /* Buttons, aktive Links, Highlights */
-  --color-brand-hover:    #1d4ed8;   /* Hover-Zustand der Markenfarbe */
+  --color-brand:          #2f6fed;   /* Buttons, aktive Links, Highlights */
+  --color-brand-hover:    #245bd1;   /* Hover-Zustand der Markenfarbe */
   --color-brand-text:     #ffffff;   /* Text auf blauem Hintergrund */
-  --color-brand-bg:       rgba(37, 99, 235, 0.10);  /* dezenter blauer Hintergrund */
-  --color-brand-bg-hover: rgba(37, 99, 235, 0.16);
-  --color-brand-border:   rgba(37, 99, 235, 0.42);  /* Fokus-Rahmen bei Inputs */
-  --color-accent-red:     #ef4444;
-  --color-royal-gold:     #f6c34a;
+  --color-brand-bg:       rgba(47, 111, 237, 0.10);  /* dezenter blauer Hintergrund */
+  --color-brand-bg-hover: rgba(47, 111, 237, 0.16);
+  --color-brand-border:   rgba(47, 111, 237, 0.42);  /* Fokus-Rahmen bei Inputs */
+  --color-accent-red:     #e14f62;
+  --color-accent-green:   #1fa672;
+  --color-accent-cyan:    #0891b2;
+  --color-royal-gold:     #eab43d;
 
   /* ── Fehler / Erfolg ── */
   --color-error:   #dc2626;
   --color-success: #0f9f6e;
 
   /* ── Seitenhintergrund ── */
-  --bg-page: #f6f9ff;
+  --bg-page: #f5f8fc;
 
   /* ── Panels und Karten ── */
-  --bg-panel:  rgba(255, 255, 255, 0.88);
-  --bg-input:  #ffffff;
-  --bg-hover:  rgba(37, 99, 235, 0.06);
-  --bg-subtle: #eef5ff;
+  --bg-panel:  rgba(255, 255, 255, 0.9);
+  --bg-panel-soft: #f0f6fb;
+  --bg-input:  #fbfdff;
+  --bg-hover:  rgba(47, 111, 237, 0.07);
+  --bg-subtle: #edf5fb;
 
   /* ── Auth-Seite (Login / Registrieren) ── */
   --bg-auth-card: rgba(255, 255, 255, 0.94);
@@ -34,16 +37,20 @@
   --bg-sidebar: rgba(255, 255, 255, 0.96);
 
   /* ── Rahmen ── */
-  --border-weak:   rgba(15, 23, 42, 0.06);
-  --border-subtle: rgba(15, 23, 42, 0.08);
-  --border-soft:   rgba(15, 23, 42, 0.12);
-  --border-medium: rgba(15, 23, 42, 0.16);
+  --border-weak:   rgba(20, 37, 63, 0.07);
+  --border-subtle: rgba(20, 37, 63, 0.09);
+  --border-soft:   rgba(20, 37, 63, 0.13);
+  --border-medium: rgba(20, 37, 63, 0.17);
 
   /* ── Text ── */
-  --text-primary:  #102033;   /* Überschriften, Hauptinhalt */
-  --text-secondary: #42526b;  /* Labels, weniger wichtiger Text */
-  --text-muted:    #64748b;   /* Hinweise, Platzhalter-Text */
-  --text-dimmed:   #98a8bd;   /* sehr dezenter Text, Trennlinien */
+  --text-primary:  #142233;   /* Überschriften, Hauptinhalt */
+  --text-secondary: #42566f;  /* Labels, weniger wichtiger Text */
+  --text-muted:    #66778d;   /* Hinweise, Platzhalter-Text */
+  --text-dimmed:   #9aaabc;   /* sehr dezenter Text, Trennlinien */
+
+  /* ── Schatten ── */
+  --shadow-soft: 0 16px 36px rgba(28, 50, 82, 0.08);
+  --shadow-lift: 0 18px 40px rgba(28, 50, 82, 0.12);
 
   /* ── Eckenradien ── */
   --radius-sm: 8px;
@@ -89,12 +96,11 @@ body {
   min-height: 100vh;
   background-color: var(--bg-page);
   background-image:
-    radial-gradient(ellipse at 14% 78%, rgba(37, 99, 235, 0.12) 0%, transparent 42%),
-    radial-gradient(ellipse at 88% 14%, rgba(239, 68, 68, 0.10) 0%, transparent 38%),
-    radial-gradient(ellipse at 48% 8%, rgba(246, 195, 74, 0.14) 0%, transparent 34%),
-    linear-gradient(rgba(37, 99, 235, 0.055) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(37, 99, 235, 0.055) 1px, transparent 1px);
-  background-size: 100% 100%, 100% 100%, 100% 100%, 38px 38px, 38px 38px;
+    linear-gradient(120deg, rgba(47, 111, 237, 0.08), transparent 34%),
+    linear-gradient(300deg, rgba(31, 166, 114, 0.08), transparent 30%),
+    linear-gradient(rgba(47, 111, 237, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(47, 111, 237, 0.04) 1px, transparent 1px);
+  background-size: 100% 100%, 100% 100%, 42px 42px, 42px 42px;
   background-attachment: fixed;
 }
 

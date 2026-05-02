@@ -43,22 +43,22 @@ function Dashboard({ data, error, isLoading }) {
       </div>
 
       <div className="card-grid">
-        <article className="panel stat-card">
+        <article className="panel stat-card stat-card--clan">
           <span className="stat-label">Clan</span>
           <strong>{data.clan_name}</strong>
         </article>
 
-        <article className="panel stat-card">
+        <article className="panel stat-card stat-card--user">
           <span className="stat-label">Username</span>
           <strong>{data.username}</strong>
         </article>
 
-        <article className="panel stat-card">
+        <article className="panel stat-card stat-card--tag">
           <span className="stat-label">Clan Tag</span>
           <strong>{data.clan_tag}</strong>
         </article>
 
-        <article className="panel stat-card">
+        <article className="panel stat-card stat-card--rank">
           <span className="stat-label">Leaderboard Rank</span>
           <strong>{`#${data.leaderboard_rank} (${data.location})`}</strong>
         </article>
