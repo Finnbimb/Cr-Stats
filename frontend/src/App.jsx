@@ -167,6 +167,7 @@ function App() {
           isLoading={membersLoading}
           onRefresh={() => setMembersData(null)}
           onUnauthorized={handleLogout}
+          clanName={dashboardData?.clan_name}
         />
       ) : (
         <Profile

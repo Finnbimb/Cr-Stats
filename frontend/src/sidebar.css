@@ -113,12 +113,20 @@
 .sidebar-link.active {
   background: var(--color-brand-bg);
   color: var(--color-brand);
+}
+
+.sidebar-open .sidebar-link.active {
   box-shadow: inset 3px 0 0 var(--color-brand);
 }
 
 .sidebar-closed .sidebar-link {
   justify-content: center;
   padding: 0.6rem;
+}
+
+.sidebar-closed .sidebar-link.active {
+  background: none;
+  color: var(--color-brand);
 }
 
 .sidebar-closed .sidebar-link-label {
