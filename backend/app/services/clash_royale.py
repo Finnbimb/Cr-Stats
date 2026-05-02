@@ -148,6 +148,51 @@ def fetch_user_clanwar_ranking(user: User):
     clans = response.json().get("items", [])
     return find_clan_by_tag(clans, user.clan_tag)
 
+
+def fetch_current_riverrace_for_tag(clan_tag: str) -> dict:
+    clan_tag = normalize_clan_tag(clan_tag)
+    encoded_tag = quote(clan_tag)
+    try:
+        response = requests.get(
+            f"https://api.clashroyale.com/v1/clans/{encoded_tag}/currentriverrace",
+            headers=get_cr_api_headers(),
+            timeout=10,
+        )
+    except requests.RequestException as exc:
+        raise HTTPException(status_code=502, detail="Failed to load current river race") from exc
+    raise_for_clash_api_error(response, "Failed to load current river race")
+    data = response.json()
+    clan = data.get("clan") or {}
+    return {
+        "period_type": data.get("periodType"),
+        "participants": clan.get("participants", []),
+    }
+
+
+def fetch_riverracelog_participants(clan_tag: str) -> list[dict]:
+    clan_tag = normalize_clan_tag(clan_tag)
+    encoded_tag = quote(clan_tag)
+    try:
+        response = requests.get(
+            f"https://api.clashroyale.com/v1/clans/{encoded_tag}/riverracelog",
+            headers=get_cr_api_headers(),
+            timeout=10,
+        )
+    except requests.RequestException as exc:
+        raise HTTPException(status_code=502, detail="Failed to load river race log") from exc
+    raise_for_clash_api_error(response, "Failed to load river race log")
+    items = response.json().get("items", [])
+    if not items:
+        return []
+    standings = items[0].get("standings", [])
+    own = next(
+        (s for s in standings if normalize_clan_tag(s.get("clan", {}).get("tag", "")) == clan_tag),
+        None,
+    )
+    if not own:
+        return []
+    return own.get("clan", {}).get("participants", [])
+
 def fetch_ranked_clan_for_location(*, ranking_path: str, fallback_detail: str, clan_tag: str = OUR_CLAN_TAG):
     locations = fetch_locations()
     germany = next((loc for loc in locations if loc["name"] == GERMANY_LOCATION_NAME), None)

@@ -5,7 +5,7 @@ import Login from './pages/Login.jsx'
 import Members from './pages/Members.jsx'
 import Profile from './pages/Profile.jsx'
 import Sidebar from './components/Sidebar.jsx'
-import { loginUser, registerUser, updateClanTag, getDashboard, getMembers } from './services/api.js'
+import { loginUser, registerUser, updateClanTag, getDashboard, getMembers, getWarPerformers } from './services/api.js'
 
 const POLL_INTERVAL = 5 * 60 * 1000
 
@@ -32,6 +32,7 @@ function App() {
 
   const [dashboardData, setDashboardData] = useState(null)
   const [membersData, setMembersData] = useState(null)
+  const [warData, setWarData] = useState(null)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -41,9 +42,10 @@ function App() {
     if (showLoading) setIsLoading(true)
     setError('')
     try {
-      const [dashResult, membersResult] = await Promise.allSettled([
+      const [dashResult, membersResult, warResult] = await Promise.allSettled([
         getDashboard(token),
         getMembers(token),
+        getWarPerformers(token),
       ])
       if (dashResult.status === 'fulfilled') {
         setDashboardData(dashResult.value)
@@ -55,6 +57,9 @@ function App() {
         setMembersData(membersResult.value.members)
       } else if (membersResult.reason?.status === 401) {
         handleLogout()
+      }
+      if (warResult.status === 'fulfilled') {
+        setWarData(warResult.value)
       }
     } finally {
       if (showLoading) setIsLoading(false)
@@ -124,6 +129,7 @@ function App() {
     setAuthError('')
     setDashboardData(null)
     setMembersData(null)
+    setWarData(null)
     navigateTo('login')
   }
 
@@ -159,6 +165,7 @@ function App() {
             isLoading={isLoading && !dashboardData}
             onRefresh={() => loadAllData(true)}
             avgTrophies={avgTrophies}
+            warData={warData}
           />
         </>
       ) : currentPage === 'members' ? (

@@ -4,7 +4,12 @@ from sqlalchemy.orm import Session
 
 from app.dependencies import get_current_db_user, get_db
 from app.models import User
-from app.services.clash_royale import fetch_user_clan_ranking, fetch_user_clanwar_ranking
+from app.services.clash_royale import (
+    fetch_user_clan_ranking,
+    fetch_user_clanwar_ranking,
+    fetch_current_riverrace_for_tag,
+    fetch_riverracelog_participants,
+)
 
 router = APIRouter()
 
@@ -49,4 +54,34 @@ def get_dashboard(user: User = Depends(get_current_db_user), db: Session = Depen
         "members": user_clan.get("members"),
         "location": user.location,
         "war_rank": war_clan.get("rank") if war_clan else None,
+    }
+
+
+@router.get("/war-performers")
+def get_war_performers(user: User = Depends(get_current_db_user)):
+    if not user.clan_tag:
+        return {"is_training": False, "performers": []}
+
+    race = fetch_current_riverrace_for_tag(user.clan_tag)
+    is_training = race.get("period_type") == "training"
+
+    participants = (
+        fetch_riverracelog_participants(user.clan_tag)
+        if is_training
+        else race.get("participants", [])
+    )
+
+    top3 = sorted(participants, key=lambda p: p.get("fame", 0), reverse=True)[:3]
+
+    return {
+        "is_training": is_training,
+        "performers": [
+            {
+                "rank": i + 1,
+                "name": p.get("name"),
+                "tag": p.get("tag"),
+                "fame": p.get("fame", 0),
+            }
+            for i, p in enumerate(top3)
+        ],
     }

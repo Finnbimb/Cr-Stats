@@ -1,4 +1,6 @@
-function Dashboard({ data, error, isLoading, avgTrophies }) {
+import WarTop from '../components/WarTop.jsx'
+
+function Dashboard({ data, error, isLoading, avgTrophies, warData }) {
   if (isLoading) {
     return <section className="panel">Dashboard wird geladen...</section>
   }
@@ -51,8 +53,11 @@ function Dashboard({ data, error, isLoading, avgTrophies }) {
           <span className="stat-label">War Rang ({data.location})</span>
           <strong>{data.war_rank != null ? `#${data.war_rank}` : '—'}</strong>
         </article>
-        
+
       </div>
+
+      <WarTop warData={warData} />
+
     </section>
   )
 }

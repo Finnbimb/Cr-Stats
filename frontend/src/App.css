@@ -321,3 +321,68 @@ input:focus {
   background: #ffffff;
   box-shadow: 0 0 0 4px rgba(47, 111, 237, 0.1);
 }
+
+
+/* ════════════════════════════════════════════════════════════
+   TOP 3 CLANKRIEG WIDGET
+   ════════════════════════════════════════════════════════════ */
+
+.war-top-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.war-top-title {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.war-top-badge {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-accent-red);
+  background: rgba(225, 79, 98, 0.10);
+  border-radius: 999px;
+  padding: 0.18rem 0.6rem;
+}
+
+.war-top-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.war-top-row {
+  display: grid;
+  grid-template-columns: 2rem 1fr auto;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem 0;
+}
+
+.war-top-row:not(:last-child) {
+  border-bottom: 1px solid var(--border-weak);
+}
+
+.war-top-medal {
+  font-size: 1.2rem;
+  line-height: 1;
+  text-align: center;
+}
+
+.war-top-name {
+  font-weight: 600;
+  color: var(--text-primary);
+  font-size: 0.92rem;
+}
+
+.war-top-fame {
+  font-weight: 800;
+  font-size: 0.88rem;
+  color: var(--color-accent-red);
+}

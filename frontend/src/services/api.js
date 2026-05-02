@@ -88,6 +88,12 @@ export async function getMembers(token) {
   })
 }
 
+export async function getWarPerformers(token) {
+  return apiRequest('/war-performers', {
+    headers: createAuthHeaders(token),
+  })
+}
+
 // export async function getCurrentRiverRace(token) {
 //   return apiRequest('/dashboard/current-riverrace', {
 //     headers: createAuthHeaders(token),
