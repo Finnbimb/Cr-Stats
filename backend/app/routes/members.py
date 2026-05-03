@@ -23,6 +23,7 @@ def get_members(user: User = Depends(get_current_db_user)):
                 "trophies": m.get("trophies"),
                 "role": m.get("role"),
                 "clan_rank": m.get("clanRank"),
+                "last_seen": m.get("lastSeen"),
             }
             for m in members
         ]

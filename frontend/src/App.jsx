@@ -4,14 +4,16 @@ import Dashboard from './pages/Dashboard.jsx'
 import Login from './pages/Login.jsx'
 import Members from './pages/Members.jsx'
 import Profile from './pages/Profile.jsx'
-import Sidebar from './components/Sidebar.jsx'
+import Rankings from './pages/Rankings.jsx'
+import War from './pages/War.jsx'
+import Topbar from './components/Topbar.jsx'
 import { loginUser, registerUser, updateClanTag, getDashboard, getMembers, getWarPerformers } from './services/api.js'
 
 const POLL_INTERVAL = 5 * 60 * 1000
 
 function getPageFromHash() {
   const page = window.location.hash.replace('#/', '')
-  if (page === 'profile' || page === 'login' || page === 'members') return page
+  if (['profile', 'login', 'members', 'rankings', 'war'].includes(page)) return page
   return 'dashboard'
 }
 
@@ -27,8 +29,6 @@ function App() {
   const [currentPage, setCurrentPage] = useState(getPageFromHash())
   const [authError, setAuthError] = useState('')
   const [isAuthLoading, setIsAuthLoading] = useState(false)
-
-  const [sidebarOpen, setSidebarOpen] = useState(false)
 
   const [dashboardData, setDashboardData] = useState(null)
   const [membersData, setMembersData] = useState(null)
@@ -149,16 +149,16 @@ function App() {
   }
 
   return (
-    <main className={`app-shell${sidebarOpen ? ' sidebar-is-open' : ''}`}>
-      {currentPage === 'dashboard' ? (
-        <>
-          <header className="topbar">
-            <div>
-              <p className="eyebrow">{dashboardData?.clan_name || 'Clan Dashboard'}</p>
-              <h1>Clan Dashboard</h1>
-            </div>
-          </header>
+    <>
+      <Topbar
+        token={token}
+        currentPage={currentPage}
+        clanName={dashboardData?.clan_name}
+        onLogout={handleLogout}
+      />
 
+      <main className="app-shell">
+        {currentPage === 'dashboard' && (
           <Dashboard
             data={dashboardData}
             error={error}
@@ -166,26 +166,28 @@ function App() {
             onRefresh={() => loadAllData(true)}
             avgTrophies={avgTrophies}
             warData={warData}
+            membersData={membersData}
           />
-        </>
-      ) : currentPage === 'members' ? (
-        <Members
-          members={membersData}
-          error={error}
-          isLoading={isLoading && !membersData}
-          onRefresh={() => loadAllData(true)}
-          clanName={dashboardData?.clan_name}
-        />
-      ) : (
-        <Profile
-          token={token}
-          onUnauthorized={handleLogout}
-          onDashboardInvalidate={() => loadAllData(true)}
-        />
-      )}
-
-      <Sidebar token={token} currentPage={currentPage} onLogout={handleLogout} open={sidebarOpen} onToggle={() => setSidebarOpen(v => !v)} />
-    </main>
+        )}
+        {currentPage === 'members' && (
+          <Members
+            members={membersData}
+            error={error}
+            isLoading={isLoading && !membersData}
+            onRefresh={() => loadAllData(true)}
+          />
+        )}
+        {currentPage === 'rankings' && <Rankings />}
+        {currentPage === 'war' && <War />}
+        {currentPage === 'profile' && (
+          <Profile
+            token={token}
+            onUnauthorized={handleLogout}
+            onDashboardInvalidate={() => loadAllData(true)}
+          />
+        )}
+      </main>
+    </>
   )
 }
 

@@ -5,20 +5,14 @@ const ROLE_LABEL = {
   member:   'Mitglied',
 }
 
-function Members({ members, error, isLoading, onRefresh, clanName }) {
+function Members({ members, error, isLoading, onRefresh }) {
   return (
     <section className="page-stack">
-      <header className="topbar">
-        <div>
-          <p className="eyebrow">CrStats</p>
-          <h1>Mitglieder {clanName ? `– ${clanName}` : ''}</h1>
-        </div>
-        <div className="nav-actions">
-          <button onClick={onRefresh} disabled={isLoading}>
-            {isLoading ? 'Lädt…' : 'Aktualisieren'}
-          </button>
-        </div>
-      </header>
+      <div className="page-actions">
+        <button onClick={onRefresh} disabled={isLoading}>
+          {isLoading ? 'Lädt…' : 'Aktualisieren'}
+        </button>
+      </div>
 
       <div className="panel">
         {isLoading && <p className="hint">Lade Mitglieder…</p>}

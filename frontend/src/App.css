@@ -4,42 +4,25 @@
    ════════════════════════════════════════════════════════════ */
 
 .app-shell {
-  max-width: 960px;
+  max-width: 1100px;
   margin: 0 auto;
-  padding: 2rem 1rem 3rem;
-  padding-right: calc(52px + 1.5rem);  /* sidebar geschlossen */
-  transition: padding-right 0.2s ease;
-}
-
-.app-shell.sidebar-is-open {
-  padding-right: calc(220px + 1.5rem); /* sidebar offen */
+  padding: calc(64px + 2rem) 1.5rem 3rem;
 }
 
 @media (max-width: 700px) {
-  .app-shell,
-  .app-shell.sidebar-is-open {
-    padding: 1.5rem 1rem calc(56px + 1.5rem); /* unten: Platz für Bottom-Nav */
+  .app-shell {
+    padding: calc(110px + 1.5rem) 1rem 2rem;
   }
 }
 
-.topbar {
+.page-actions {
   display: flex;
-  justify-content: space-between;
-  align-items: end;
-  gap: 1rem;
-  margin-bottom: 1.5rem;
+  justify-content: flex-end;
+  margin-bottom: 1rem;
 }
 
-.nav-actions {
-  display: flex;
-  gap: 0.75rem;
-  flex-wrap: wrap;
-}
-
-.nav-actions a,
-.nav-actions button,
+.page-actions button,
 .inline-link {
-  width: fit-content;
   border: 1px solid var(--border-medium);
   background: var(--bg-input);
   color: var(--text-primary);
@@ -53,27 +36,12 @@
   transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease, border-color 0.15s ease;
 }
 
-.nav-actions a:hover,
-.nav-actions button:hover,
+.page-actions button:hover,
 .inline-link:hover {
   background: var(--color-brand-bg);
   border-color: var(--color-brand-border);
   box-shadow: 0 12px 24px rgba(47, 111, 237, 0.12);
   transform: translateY(-1px);
-}
-
-.nav-actions .active {
-  background: var(--color-brand);
-  color: var(--color-brand-text);
-  border-color: var(--color-brand);
-  font-weight: 700;
-}
-
-@media (max-width: 700px) {
-  .topbar {
-    align-items: start;
-    flex-direction: column;
-  }
 }
 
 
@@ -146,6 +114,7 @@
 .stat-card--trophies { --stat-accent: #f97316; }
 .stat-card--germany  { --stat-accent: #8b5cf6; }
 .stat-card--war      { --stat-accent: var(--color-accent-red); }
+.stat-card--activity { --stat-accent: var(--color-accent-green); }
 
 .stat-label {
   position: relative;

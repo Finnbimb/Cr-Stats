@@ -1,6 +1,24 @@
 import WarTop from '../components/WarTop.jsx'
 
-function Dashboard({ data, error, isLoading, avgTrophies, warData }) {
+function parseLastSeen(ls) {
+  if (!ls) return null
+  // Format: "20230524T133000.000Z"
+  const m = ls.match(/^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})/)
+  if (!m) return null
+  return new Date(`${m[1]}-${m[2]}-${m[3]}T${m[4]}:${m[5]}:${m[6]}.000Z`)
+}
+
+function calcActiveMembers(members) {
+  if (!members?.length) return null
+  const cutoff = Date.now() - 24 * 60 * 60 * 1000
+  const active = members.filter(m => {
+    const date = parseLastSeen(m.last_seen)
+    return date ? date.getTime() > cutoff : true
+  }).length
+  return { active, total: members.length }
+}
+
+function Dashboard({ data, error, isLoading, avgTrophies, warData, membersData }) {
   if (isLoading) {
     return <section className="panel">Dashboard wird geladen...</section>
   }
@@ -34,6 +52,8 @@ function Dashboard({ data, error, isLoading, avgTrophies, warData }) {
 
   if (!data) return null
 
+  const activity = calcActiveMembers(membersData)
+
   return (
     <section className="page-stack">
 
@@ -52,6 +72,15 @@ function Dashboard({ data, error, isLoading, avgTrophies, warData }) {
         <article className="panel stat-card stat-card--war">
           <span className="stat-label">War Rang ({data.location})</span>
           <strong>{data.war_rank != null ? `#${data.war_rank}` : '—'}</strong>
+        </article>
+
+        <article className="panel stat-card stat-card--activity">
+          <span className="stat-label">Aktiv (24h)</span>
+          <strong>
+            {activity
+              ? `${activity.active} / ${activity.total}`
+              : '—'}
+          </strong>
         </article>
 
       </div>
