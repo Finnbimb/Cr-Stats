@@ -63,6 +63,58 @@ def get_rankings_history(
     }
 
 
+@router.get("/rankings/debug-riverracelog")
+def debug_riverracelog(user: User = Depends(get_current_db_user)):
+    """Temporary debug endpoint — returns raw + extracted preview of CR riverracelog."""
+    if not user.clan_tag:
+        return {"error": "no clan_tag"}
+
+    clan_tag = normalize_clan_tag(user.clan_tag)
+    encoded_tag = quote(clan_tag)
+
+    response = requests.get(
+        f"https://api.clashroyale.com/v1/clans/{encoded_tag}/riverracelog",
+        headers=get_cr_api_headers(),
+        timeout=10,
+    )
+    raise_for_clash_api_error(response, "Failed to load river race log")
+    raw = response.json()
+    items = raw.get("items", []) or []
+
+    preview = []
+    for item in items:
+        standings = item.get("standings", []) or []
+        own = next(
+            (
+                s for s in standings
+                if normalize_clan_tag((s.get("clan") or {}).get("tag", "") or "#") == clan_tag
+            ),
+            None,
+        )
+        clan = (own or {}).get("clan", {}) if own else {}
+        participants = clan.get("participants", []) or []
+        participant_fame_sum = sum((p or {}).get("fame", 0) for p in participants)
+
+        preview.append({
+            "seasonId": item.get("seasonId"),
+            "sectionIndex": item.get("sectionIndex"),
+            "createdDate": item.get("createdDate"),
+            "rank": (own or {}).get("rank"),
+            "trophyChange": (own or {}).get("trophyChange"),
+            "clan_keys": sorted(list(clan.keys())),
+            "clan_fame_field": clan.get("fame"),
+            "clan_repairPoints": clan.get("repairPoints"),
+            "clan_periodPoints": clan.get("periodPoints"),
+            "clan_clanScore": clan.get("clanScore"),
+            "clan_clanWarTrophies": clan.get("clanWarTrophies"),
+            "participant_count": len(participants),
+            "participant_fame_sum": participant_fame_sum,
+            "first_participant_keys": sorted(list((participants[0] or {}).keys())) if participants else [],
+        })
+
+    return {"item_count": len(items), "items": preview}
+
+
 @router.get("/rankings/war-log")
 def get_war_log(user: User = Depends(get_current_db_user)):
     if not user.clan_tag:
