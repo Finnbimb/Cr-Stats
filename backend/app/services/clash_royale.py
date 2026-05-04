@@ -163,9 +163,27 @@ def fetch_current_riverrace_for_tag(clan_tag: str) -> dict:
     raise_for_clash_api_error(response, "Failed to load current river race")
     data = response.json()
     clan = data.get("clan") or {}
+    clans = data.get("clans", [])
+
+    participants = clan.get("participants", [])
+    if not participants and clans:
+        own = find_clan_by_tag(clans, clan_tag)
+        if own:
+            participants = own.get("participants", [])
+
+    war_rank = None
+    if clans:
+        sorted_clans = sorted(clans, key=lambda c: c.get("fame", 0), reverse=True)
+        for i, c in enumerate(sorted_clans):
+            if c.get("tag") and normalize_clan_tag(c.get("tag")) == clan_tag:
+                war_rank = i + 1
+                break
+
     return {
         "period_type": data.get("periodType"),
-        "participants": clan.get("participants", []),
+        "section_index": data.get("sectionIndex", 0),
+        "participants": participants,
+        "war_rank": war_rank,
     }
 
 
@@ -283,9 +301,10 @@ def fetch_player_by_tag(player_tag: str):
         "clan_name": clan_data.get("name"),
     }
     
-def fetch_current_clan_members():
-    encoded_tag = quote(OUR_CLAN_TAG)
-    
+def fetch_clan_members(clan_tag: str) -> list[dict]:
+    clan_tag = normalize_clan_tag(clan_tag)
+    encoded_tag = quote(clan_tag)
+
     try:
         response = requests.get(
             f"https://api.clashroyale.com/v1/clans/{encoded_tag}/members",
@@ -299,8 +318,11 @@ def fetch_current_clan_members():
         ) from exc
 
     raise_for_clash_api_error(response, "Failed to load clan members from Clash Royale API")
-
     return response.json().get("items", [])
+
+
+def fetch_current_clan_members():
+    return fetch_clan_members(OUR_CLAN_TAG)
 
 def get_current_riverrace():
     try:

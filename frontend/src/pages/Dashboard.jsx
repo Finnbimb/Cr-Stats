@@ -85,7 +85,7 @@ function Dashboard({ data, error, isLoading, avgTrophies, warData, membersData }
 
       </div>
 
-      <WarTop warData={warData} />
+      <WarTop warData={warData} warRank={warData?.war_rank ?? null} />
 
     </section>
   )
