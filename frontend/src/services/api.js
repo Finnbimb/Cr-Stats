@@ -94,6 +94,12 @@ export async function getWarPerformers(token) {
   })
 }
 
+export async function getWarParticipants(token) {
+  return apiRequest('/war-participants', {
+    headers: createAuthHeaders(token),
+  })
+}
+
 // export async function getCurrentRiverRace(token) {
 //   return apiRequest('/dashboard/current-riverrace', {
 //     headers: createAuthHeaders(token),

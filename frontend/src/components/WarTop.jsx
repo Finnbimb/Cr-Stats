@@ -17,7 +17,7 @@ function TrainingView({ warData, warRank }) {
   const participantCount = warData?.participant_count ?? 0
 
   return (
-    <article className="panel war-card">
+    <a href="#/war" className="panel war-card war-card--link">
       <header className="war-card-header">
         <span className="war-card-title">⚔ Trainingsphase</span>
         <span className="war-top-badge">Training</span>
@@ -47,7 +47,7 @@ function TrainingView({ warData, warRank }) {
           </div>
         </div>
       </div>
-    </article>
+    </a>
   )
 }
 
@@ -64,10 +64,11 @@ function WarTop({ warData, warRank }) {
   const decksTotalMax = warData?.decks_total_max ?? 0
 
   return (
-    <article className="panel war-card">
+    <a href="#/war" className="panel war-card war-card--link">
 
       <header className="war-card-header">
         <span className="war-card-title">⚔ Aktueller Krieg</span>
+        <span className="war-card-link-hint">Alle Teilnehmer →</span>
       </header>
 
       <div className="war-card-body">
@@ -121,7 +122,7 @@ function WarTop({ warData, warRank }) {
         </div>
       )}
 
-    </article>
+    </a>
   )
 }
 

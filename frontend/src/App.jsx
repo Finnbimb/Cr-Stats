@@ -7,7 +7,7 @@ import Profile from './pages/Profile.jsx'
 import Rankings from './pages/Rankings.jsx'
 import War from './pages/War.jsx'
 import Topbar from './components/Topbar.jsx'
-import { loginUser, registerUser, updateClanTag, getDashboard, getMembers, getWarPerformers } from './services/api.js'
+import { loginUser, registerUser, updateClanTag, getDashboard, getMembers, getWarPerformers, getWarParticipants } from './services/api.js'
 
 const POLL_INTERVAL = 5 * 60 * 1000
 
@@ -33,6 +33,7 @@ function App() {
   const [dashboardData, setDashboardData] = useState(null)
   const [membersData, setMembersData] = useState(null)
   const [warData, setWarData] = useState(null)
+  const [warParticipantsData, setWarParticipantsData] = useState(null)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -42,10 +43,11 @@ function App() {
     if (showLoading) setIsLoading(true)
     setError('')
     try {
-      const [dashResult, membersResult, warResult] = await Promise.allSettled([
+      const [dashResult, membersResult, warResult, warParticipantsResult] = await Promise.allSettled([
         getDashboard(token),
         getMembers(token),
         getWarPerformers(token),
+        getWarParticipants(token),
       ])
       if (dashResult.status === 'fulfilled') {
         setDashboardData(dashResult.value)
@@ -60,6 +62,9 @@ function App() {
       }
       if (warResult.status === 'fulfilled') {
         setWarData(warResult.value)
+      }
+      if (warParticipantsResult.status === 'fulfilled') {
+        setWarParticipantsData(warParticipantsResult.value)
       }
     } finally {
       if (showLoading) setIsLoading(false)
@@ -130,6 +135,7 @@ function App() {
     setDashboardData(null)
     setMembersData(null)
     setWarData(null)
+    setWarParticipantsData(null)
     navigateTo('login')
   }
 
@@ -178,7 +184,7 @@ function App() {
           />
         )}
         {currentPage === 'rankings' && <Rankings />}
-        {currentPage === 'war' && <War />}
+        {currentPage === 'war' && <War warData={warData} participantsData={warParticipantsData} isLoading={isLoading && !warParticipantsData} />}
         {currentPage === 'profile' && (
           <Profile
             token={token}
