@@ -57,6 +57,50 @@ def get_dashboard(user: User = Depends(get_current_db_user), db: Session = Depen
     }
 
 
+@router.get("/war-participants")
+def get_war_participants(user: User = Depends(get_current_db_user)):
+    if not user.clan_tag:
+        return {"is_training": False, "section_index": 0, "war_rank": None,
+                "clan_count": 0, "decks_today": 0, "decks_today_max": 0,
+                "decks_total": 0, "decks_total_max": 0, "participants": []}
+
+    race = fetch_current_riverrace_for_tag(user.clan_tag)
+    is_training = race.get("period_type") == "training"
+    section_index = race.get("section_index", 0)
+    war_rank = race.get("war_rank")
+    clan_count = race.get("clan_count", 0)
+    participants = race.get("participants", [])
+
+    current_tags = {m.get("tag") for m in fetch_clan_members(user.clan_tag)}
+    days_elapsed = max(section_index + 1, 1)
+
+    enriched = sorted([
+        {
+            "name": p.get("name"),
+            "tag": p.get("tag"),
+            "fame": p.get("fame", 0),
+            "decks_used": p.get("decksUsed", 0),
+            "decks_used_today": p.get("decksUsedToday", 0),
+            "boat_attacks": p.get("boatAttacks", 0),
+            "is_current_member": p.get("tag") in current_tags,
+        }
+        for p in participants
+    ], key=lambda p: p["fame"], reverse=True)
+
+    count = len(enriched)
+    return {
+        "is_training": is_training,
+        "section_index": section_index,
+        "war_rank": war_rank,
+        "clan_count": clan_count,
+        "decks_today": sum(p["decks_used_today"] for p in enriched),
+        "decks_today_max": count * 4,
+        "decks_total": sum(p["decks_used"] for p in enriched),
+        "decks_total_max": count * 4 * days_elapsed,
+        "participants": enriched,
+    }
+
+
 @router.get("/war-performers")
 def get_war_performers(user: User = Depends(get_current_db_user)):
     if not user.clan_tag:
