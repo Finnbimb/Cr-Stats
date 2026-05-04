@@ -79,8 +79,11 @@ def get_war_performers(user: User = Depends(get_current_db_user)):
     days_elapsed = max(section_index + 1, 1)
     if is_training:
         missing_today = []
+        debug_member_count = None
     else:
-        current_tags = {m.get("tag") for m in fetch_clan_members(user.clan_tag)}
+        current_members = fetch_clan_members(user.clan_tag)
+        current_tags = {m.get("tag") for m in current_members}
+        debug_member_count = len(current_members)
         missing_today = [
             p.get("name") for p in participants
             if p.get("decksUsedToday", 0) == 0 and p.get("tag") in current_tags
@@ -104,4 +107,5 @@ def get_war_performers(user: User = Depends(get_current_db_user)):
         "decks_total": decks_total,
         "decks_total_max": count * 4 * days_elapsed,
         "missing_today": missing_today,
+        "debug_member_count": debug_member_count,
     }
