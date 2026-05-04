@@ -182,7 +182,6 @@ def fetch_current_riverrace_for_tag(clan_tag: str) -> dict:
     return {
         "period_type": data.get("periodType"),
         "section_index": data.get("sectionIndex", 0),
-        "period_end_time": data.get("periodEndTime"),
         "clan_count": len(clans),
         "participants": participants,
         "war_rank": war_rank,

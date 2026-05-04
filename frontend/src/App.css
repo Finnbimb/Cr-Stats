@@ -480,25 +480,16 @@ input:focus {
   gap: 1.25rem;
 }
 
-.war-training-countdown-block {
+.war-training-rank-block {
   display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
+  align-items: baseline;
+  gap: 0.5rem;
 }
 
-.war-training-countdown-label {
-  font-size: 0.78rem;
-  font-weight: 600;
+.war-training-of {
+  font-size: 0.85rem;
   color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-}
-
-.war-training-countdown-value {
-  font-size: 2rem;
-  font-weight: 900;
-  color: var(--text-primary);
-  line-height: 1.1;
+  font-weight: 500;
 }
 
 .war-training-meta {

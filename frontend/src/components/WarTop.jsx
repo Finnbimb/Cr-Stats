@@ -1,33 +1,5 @@
 const MEDAL = { 1: '🥇', 2: '🥈', 3: '🥉' }
 
-function parseCrTimestamp(ts) {
-  if (!ts) return null
-  const m = ts.match(/^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})/)
-  if (!m) return null
-  return new Date(`${m[1]}-${m[2]}-${m[3]}T${m[4]}:${m[5]}:${m[6]}.000Z`)
-}
-
-function formatCountdown(date) {
-  if (!date) return null
-  const diff = date.getTime() - Date.now()
-  if (diff <= 0) return 'Bald'
-  const totalMinutes = Math.floor(diff / 60000)
-  const days = Math.floor(totalMinutes / 1440)
-  const hours = Math.floor((totalMinutes % 1440) / 60)
-  const minutes = totalMinutes % 60
-  if (days > 0) return `${days}T ${hours}h ${minutes}min`
-  if (hours > 0) return `${hours}h ${minutes}min`
-  return `${minutes}min`
-}
-
-function formatWarStart(date) {
-  if (!date) return null
-  return date.toLocaleString('de-DE', {
-    weekday: 'short', day: '2-digit', month: '2-digit',
-    hour: '2-digit', minute: '2-digit',
-  })
-}
-
 function ProgressBar({ value, max, color = 'var(--color-brand)' }) {
   const pct = max > 0 ? Math.min(100, Math.round((value / max) * 100)) : 0
   return (
@@ -41,10 +13,8 @@ function ProgressBar({ value, max, color = 'var(--color-brand)' }) {
 }
 
 function TrainingView({ warData, warRank }) {
-  const warStartDate = parseCrTimestamp(warData?.period_end_time)
-  const countdown = formatCountdown(warStartDate)
-  const warStartLabel = formatWarStart(warStartDate)
   const clanCount = warData?.clan_count ?? 0
+  const participantCount = warData?.participant_count ?? 0
 
   return (
     <article className="panel war-card">
@@ -54,30 +24,27 @@ function TrainingView({ warData, warRank }) {
       </header>
 
       <div className="war-training-body">
-        <div className="war-training-countdown-block">
-          <span className="war-training-countdown-label">Kriegstag beginnt in</span>
-          <strong className="war-training-countdown-value">{countdown ?? '—'}</strong>
-        </div>
+        {warRank != null && (
+          <div className="war-training-rank-block">
+            <span className="war-rank-label">Platz</span>
+            <strong className="war-rank-value">#{warRank}</strong>
+            {clanCount > 0 && (
+              <span className="war-training-of">von {clanCount} Clans</span>
+            )}
+          </div>
+        )}
 
         <div className="war-training-meta">
-          {warStartLabel && (
+          {participantCount > 0 && (
             <div className="war-training-meta-row">
-              <span className="war-training-meta-icon">🗓</span>
-              <span>{warStartLabel} Uhr</span>
+              <span className="war-training-meta-icon">👥</span>
+              <span>{participantCount} Mitglieder nehmen teil</span>
             </div>
           )}
-          {clanCount > 0 && (
-            <div className="war-training-meta-row">
-              <span className="war-training-meta-icon">⚔</span>
-              <span>{clanCount} Clans nehmen teil</span>
-            </div>
-          )}
-          {warRank != null && (
-            <div className="war-training-meta-row">
-              <span className="war-training-meta-icon">🏆</span>
-              <span>Training-Platz <strong>#{warRank}</strong></span>
-            </div>
-          )}
+          <div className="war-training-meta-row">
+            <span className="war-training-meta-icon">⏳</span>
+            <span>Kriegstag beginnt morgen</span>
+          </div>
         </div>
       </div>
     </article>

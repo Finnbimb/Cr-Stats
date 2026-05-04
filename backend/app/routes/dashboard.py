@@ -68,7 +68,6 @@ def get_war_performers(user: User = Depends(get_current_db_user)):
     is_training = race.get("period_type") == "training"
     section_index = race.get("section_index", 0)
     war_rank = race.get("war_rank")
-    period_end_time = race.get("period_end_time")
     clan_count = race.get("clan_count", 0)
 
     participants = race.get("participants", [])
@@ -93,8 +92,8 @@ def get_war_performers(user: User = Depends(get_current_db_user)):
         "is_training": is_training,
         "section_index": section_index,
         "war_rank": war_rank,
-        "period_end_time": period_end_time,
         "clan_count": clan_count,
+        "participant_count": count,
         "performers": [
             {
                 "rank": i + 1,
