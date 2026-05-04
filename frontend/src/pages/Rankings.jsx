@@ -1,4 +1,3 @@
-import { useEffect, useState } from 'react'
 import {
   ComposedChart,
   Line,
@@ -9,8 +8,6 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts'
-
-import { getRankingsHistory, getWarLog } from '../services/api.js'
 
 const COLOR_SCORE = 'var(--color-brand)'
 const COLOR_RANK = '#f59e0b'
@@ -266,45 +263,9 @@ function WarChart({ wars, location }) {
   )
 }
 
-export default function Rankings({ token }) {
-  const [history, setHistory] = useState(null)
-  const [warLog, setWarLog] = useState(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState('')
-
-  useEffect(() => {
-    let cancelled = false
-    async function load() {
-      setIsLoading(true)
-      setError('')
-      try {
-        const [h, w] = await Promise.allSettled([
-          getRankingsHistory(token),
-          getWarLog(token),
-        ])
-        if (cancelled) return
-        if (h.status === 'fulfilled') setHistory(h.value)
-        if (w.status === 'fulfilled') setWarLog(w.value)
-        if (h.status === 'rejected' && w.status === 'rejected') {
-          setError(h.reason?.message || 'Fehler beim Laden')
-        }
-      } finally {
-        if (!cancelled) setIsLoading(false)
-      }
-    }
-    if (token) load()
-    return () => { cancelled = true }
-  }, [token])
-
+export default function Rankings({ history, warLog, isLoading }) {
   if (isLoading) {
     return <section className="panel">Rankings werden geladen…</section>
-  }
-  if (error) {
-    return (
-      <section className="panel page-stack">
-        <p className="message error">{error}</p>
-      </section>
-    )
   }
 
   return (

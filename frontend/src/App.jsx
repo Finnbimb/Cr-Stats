@@ -7,9 +7,10 @@ import Profile from './pages/Profile.jsx'
 import Rankings from './pages/Rankings.jsx'
 import War from './pages/War.jsx'
 import Topbar from './components/Topbar.jsx'
-import { loginUser, registerUser, updateClanTag, getDashboard, getMembers, getWarPerformers, getWarParticipants } from './services/api.js'
+import { loginUser, registerUser, updateClanTag, getDashboard, getMembers, getWarPerformers, getWarParticipants, getRankingsHistory, getWarLog } from './services/api.js'
 
 const POLL_INTERVAL = 5 * 60 * 1000
+const RANKINGS_POLL_INTERVAL = 30 * 60 * 1000
 
 function getPageFromHash() {
   const page = window.location.hash.replace('#/', '')
@@ -34,10 +35,14 @@ function App() {
   const [membersData, setMembersData] = useState(null)
   const [warData, setWarData] = useState(null)
   const [warParticipantsData, setWarParticipantsData] = useState(null)
+  const [rankingsHistory, setRankingsHistory] = useState(null)
+  const [warLog, setWarLog] = useState(null)
   const [isLoading, setIsLoading] = useState(false)
+  const [isRankingsLoading, setIsRankingsLoading] = useState(false)
   const [error, setError] = useState('')
 
   const pollRef = useRef(null)
+  const rankingsPollRef = useRef(null)
 
   async function loadAllData(showLoading = false) {
     if (showLoading) setIsLoading(true)
@@ -71,11 +76,30 @@ function App() {
     }
   }
 
+  async function loadRankings(showLoading = false) {
+    if (showLoading) setIsRankingsLoading(true)
+    try {
+      const [historyResult, warLogResult] = await Promise.allSettled([
+        getRankingsHistory(token),
+        getWarLog(token),
+      ])
+      if (historyResult.status === 'fulfilled') setRankingsHistory(historyResult.value)
+      if (warLogResult.status === 'fulfilled') setWarLog(warLogResult.value)
+    } finally {
+      if (showLoading) setIsRankingsLoading(false)
+    }
+  }
+
   useEffect(() => {
     if (!token) return
     loadAllData(true)
+    loadRankings(true)
     pollRef.current = setInterval(() => loadAllData(false), POLL_INTERVAL)
-    return () => clearInterval(pollRef.current)
+    rankingsPollRef.current = setInterval(() => loadRankings(false), RANKINGS_POLL_INTERVAL)
+    return () => {
+      clearInterval(pollRef.current)
+      clearInterval(rankingsPollRef.current)
+    }
   }, [token])
 
   useEffect(() => {
@@ -129,6 +153,7 @@ function App() {
 
   function handleLogout() {
     clearInterval(pollRef.current)
+    clearInterval(rankingsPollRef.current)
     localStorage.removeItem('token')
     setToken('')
     setAuthError('')
@@ -136,6 +161,8 @@ function App() {
     setMembersData(null)
     setWarData(null)
     setWarParticipantsData(null)
+    setRankingsHistory(null)
+    setWarLog(null)
     navigateTo('login')
   }
 
@@ -183,7 +210,13 @@ function App() {
             onRefresh={() => loadAllData(true)}
           />
         )}
-        {currentPage === 'rankings' && <Rankings token={token} />}
+        {currentPage === 'rankings' && (
+          <Rankings
+            history={rankingsHistory}
+            warLog={warLog}
+            isLoading={isRankingsLoading && !rankingsHistory && !warLog}
+          />
+        )}
         {currentPage === 'war' && <War warData={warData} participantsData={warParticipantsData} isLoading={isLoading && !warParticipantsData} />}
         {currentPage === 'profile' && (
           <Profile
