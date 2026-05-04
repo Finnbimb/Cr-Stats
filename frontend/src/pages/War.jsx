@@ -69,10 +69,6 @@ export default function War({ warData, participantsData, isLoading }) {
   const [sortBy, setSortBy] = useState('decks_used')
   const [reversed, setReversed] = useState(false)
 
-  if (isLoading) {
-    return <section className="panel">War-Daten werden geladen...</section>
-  }
-
   const participants = participantsData?.participants ?? []
   const isTraining = (participantsData ?? warData)?.is_training ?? false
 
@@ -86,6 +82,10 @@ export default function War({ warData, participantsData, isLoading }) {
     if (reversed) list.reverse()
     return list
   }, [participants, search, sortBy, reversed])
+
+  if (isLoading) {
+    return <section className="panel">War-Daten werden geladen...</section>
+  }
 
   return (
     <section className="page-stack">
