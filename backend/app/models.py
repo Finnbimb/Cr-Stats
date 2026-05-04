@@ -36,6 +36,21 @@ class Members(Base):
     updated_at = Column(Integer, nullable=True)
 
 
+class ClanRankingSnapshot(Base):
+    __tablename__ = "clan_ranking_snapshots"
+
+    id = Column(Integer, primary_key=True, index=True)
+    clan_tag = Column(String, index=True, nullable=False)
+    location_id = Column(Integer, nullable=False)
+    location_name = Column(String, nullable=True)
+    snapshot_date = Column(String, index=True, nullable=False)  # "YYYY-MM-DD"
+    trophy_rank = Column(Integer, nullable=True)
+    war_rank = Column(Integer, nullable=True)
+    clan_score = Column(Integer, nullable=True)
+    clan_war_trophies = Column(Integer, nullable=True)
+    captured_at = Column(Integer, nullable=False)
+
+
 class DiscordPlayerLink(Base):
     __tablename__ = "discord_player_links"
 

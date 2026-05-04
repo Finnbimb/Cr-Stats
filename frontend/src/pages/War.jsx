@@ -1,3 +1,11 @@
+import { useState, useMemo } from 'react'
+
+const SORT_OPTIONS = [
+  { value: 'decks_used', label: 'Gesamt gespielt' },
+  { value: 'fame', label: 'Fame' },
+  { value: 'decks_used_today', label: 'Heute gespielt' },
+]
+
 function ProgressBar({ value, max, color = 'var(--color-brand)' }) {
   const pct = max > 0 ? Math.min(100, Math.round((value / max) * 100)) : 0
   return (
@@ -57,25 +65,69 @@ function WarHeader({ data }) {
 }
 
 export default function War({ warData, participantsData, isLoading }) {
+  const [search, setSearch] = useState('')
+  const [sortBy, setSortBy] = useState('decks_used')
+  const [reversed, setReversed] = useState(false)
+
   if (isLoading) {
     return <section className="panel">War-Daten werden geladen...</section>
   }
 
-  const data = participantsData ?? warData
   const participants = participantsData?.participants ?? []
-  const isTraining = data?.is_training ?? false
+  const isTraining = (participantsData ?? warData)?.is_training ?? false
+
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase()
+    let list = q
+      ? participants.filter(p => p.name.toLowerCase().includes(q))
+      : [...participants]
+
+    list.sort((a, b) => b[sortBy] - a[sortBy])
+    if (reversed) list.reverse()
+    return list
+  }, [participants, search, sortBy, reversed])
 
   return (
     <section className="page-stack">
       <WarHeader data={participantsData ?? warData} />
 
       <div className="panel">
-        <p className="war-section-title" style={{ marginBottom: '0.75rem' }}>
-          Teilnehmer ({participants.length})
-        </p>
+        <div className="war-controls">
+          <input
+            className="war-search"
+            type="text"
+            placeholder="Name suchen…"
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+          />
 
-        {participants.length === 0 ? (
-          <p className="hint">Keine Teilnehmer gefunden.</p>
+          <div className="war-controls-right">
+            <div className="war-sort-group">
+              {SORT_OPTIONS.map(opt => (
+                <button
+                  key={opt.value}
+                  className={`war-sort-btn${sortBy === opt.value ? ' active' : ''}`}
+                  onClick={() => setSortBy(opt.value)}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+
+            <button
+              className={`war-reverse-btn${reversed ? ' active' : ''}`}
+              onClick={() => setReversed(v => !v)}
+              title="Reihenfolge umkehren"
+            >
+              {reversed ? '↑' : '↓'}
+            </button>
+          </div>
+        </div>
+
+        {filtered.length === 0 ? (
+          <p className="hint" style={{ marginTop: '1rem' }}>
+            {participants.length === 0 ? 'Keine Teilnehmer gefunden.' : 'Kein Treffer für diese Suche.'}
+          </p>
         ) : (
           <table className="members-table war-participants-table">
             <thead>
@@ -88,9 +140,9 @@ export default function War({ warData, participantsData, isLoading }) {
               </tr>
             </thead>
             <tbody>
-              {participants.map((p, i) => (
+              {filtered.map((p, i) => (
                 <tr key={p.tag} className={p.is_current_member ? '' : 'war-row--ex-member'}>
-                  <td className="members-rank">{i + 1}</td>
+                  <td className="members-rank">{reversed ? filtered.length - i : i + 1}</td>
                   <td className="war-participant-name">
                     {p.name}
                     {!p.is_current_member && <span className="war-ex-badge">Ex</span>}

@@ -100,6 +100,18 @@ export async function getWarParticipants(token) {
   })
 }
 
+export async function getRankingsHistory(token) {
+  return apiRequest('/rankings/history', {
+    headers: createAuthHeaders(token),
+  })
+}
+
+export async function getWarLog(token) {
+  return apiRequest('/rankings/war-log', {
+    headers: createAuthHeaders(token),
+  })
+}
+
 // export async function getCurrentRiverRace(token) {
 //   return apiRequest('/dashboard/current-riverrace', {
 //     headers: createAuthHeaders(token),

@@ -183,7 +183,7 @@ function App() {
             onRefresh={() => loadAllData(true)}
           />
         )}
-        {currentPage === 'rankings' && <Rankings />}
+        {currentPage === 'rankings' && <Rankings token={token} />}
         {currentPage === 'war' && <War warData={warData} participantsData={warParticipantsData} isLoading={isLoading && !warParticipantsData} />}
         {currentPage === 'profile' && (
           <Profile

@@ -591,6 +591,84 @@ input:focus {
   gap: 0.85rem;
 }
 
+/* Such- und Filter-Leiste */
+.war-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.war-search {
+  width: auto;
+  flex: 1;
+  min-width: 140px;
+}
+
+.war-controls-right {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.war-sort-group {
+  display: flex;
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.war-sort-btn {
+  background: var(--bg-input);
+  border: none;
+  border-right: 1px solid var(--border-medium);
+  color: var(--text-muted);
+  padding: 0.5rem 0.8rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+  width: auto;
+  border-radius: 0;
+}
+
+.war-sort-btn:last-child {
+  border-right: none;
+}
+
+.war-sort-btn:hover {
+  background: var(--color-brand-bg);
+  color: var(--color-brand);
+}
+
+.war-sort-btn.active {
+  background: var(--color-brand-bg);
+  color: var(--color-brand);
+  font-weight: 700;
+}
+
+.war-reverse-btn {
+  background: var(--bg-input);
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  padding: 0.5rem 0.7rem;
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+  width: auto;
+}
+
+.war-reverse-btn:hover,
+.war-reverse-btn.active {
+  background: var(--color-brand-bg);
+  color: var(--color-brand);
+  border-color: var(--color-brand-border);
+}
+
 /* Teilnehmer-Tabelle */
 .war-participants-table .war-col-fame {
   text-align: right;
@@ -632,4 +710,63 @@ input:focus {
 
 .war-row--ex-member td {
   opacity: 0.55;
+}
+
+
+/* ════════════════════════════════════════════════════════════
+   RANKINGS-SEITE
+   ════════════════════════════════════════════════════════════ */
+
+.ranking-chart-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  padding: 1.25rem 1rem 1rem;
+}
+
+.ranking-chart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 0 0.25rem;
+}
+
+.ranking-chart-title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.ranking-chart-subtitle {
+  margin: 0.15rem 0 0;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.ranking-chart-body {
+  width: 100%;
+  min-height: 280px;
+}
+
+.ranking-chart-footer {
+  margin: 0.25rem 0 0;
+  padding: 0 0.25rem;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.ranking-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 220px;
+  padding: 1rem;
+  color: var(--text-muted);
+  text-align: center;
+  font-size: 0.9rem;
+  border: 1px dashed var(--border-weak);
+  border-radius: var(--radius-md);
+  background: var(--bg-panel-soft);
 }
