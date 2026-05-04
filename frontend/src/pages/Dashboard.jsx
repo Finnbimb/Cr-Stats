@@ -55,34 +55,36 @@ function Dashboard({ data, error, isLoading, avgTrophies, warData, membersData }
   const activity = calcActiveMembers(membersData)
 
   return (
-    <section className="page-stack">
+    <section className="dashboard-layout">
 
-      <div className="card-grid">
+      <div className="dashboard-left">
+        <div className="card-grid card-grid--2col">
 
-        <article className="panel stat-card stat-card--rank">
-          <span className="stat-label">Leaderboard Rank</span>
-          <strong>{`#${data.leaderboard_rank} (${data.location})`}</strong>
-        </article>
+          <article className="panel stat-card stat-card--rank">
+            <span className="stat-label">Leaderboard Rank</span>
+            <strong>{`#${data.leaderboard_rank} (${data.location})`}</strong>
+          </article>
 
-        <article className="panel stat-card stat-card--trophies">
-          <span className="stat-label">Ø Trophäen</span>
-          <strong>{avgTrophies != null ? avgTrophies.toLocaleString() : '—'}</strong>
-        </article>
+          <article className="panel stat-card stat-card--trophies">
+            <span className="stat-label">Ø Trophäen</span>
+            <strong>{avgTrophies != null ? avgTrophies.toLocaleString() : '—'}</strong>
+          </article>
 
-        <article className="panel stat-card stat-card--war">
-          <span className="stat-label">War Rang ({data.location})</span>
-          <strong>{data.war_rank != null ? `#${data.war_rank}` : '—'}</strong>
-        </article>
+          <article className="panel stat-card stat-card--war">
+            <span className="stat-label">War Rang ({data.location})</span>
+            <strong>{data.war_rank != null ? `#${data.war_rank}` : '—'}</strong>
+          </article>
 
-        <article className="panel stat-card stat-card--activity">
-          <span className="stat-label">Aktiv (24h)</span>
-          <strong>
-            {activity
-              ? `${activity.active} / ${activity.total}`
-              : '—'}
-          </strong>
-        </article>
+          <article className="panel stat-card stat-card--activity">
+            <span className="stat-label">Aktiv (24h)</span>
+            <strong>
+              {activity
+                ? `${activity.active} / ${activity.total}`
+                : '—'}
+            </strong>
+          </article>
 
+        </div>
       </div>
 
       <WarTop warData={warData} warRank={warData?.war_rank ?? null} />

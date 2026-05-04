@@ -1,5 +1,33 @@
 const MEDAL = { 1: '🥇', 2: '🥈', 3: '🥉' }
 
+function parseCrTimestamp(ts) {
+  if (!ts) return null
+  const m = ts.match(/^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})/)
+  if (!m) return null
+  return new Date(`${m[1]}-${m[2]}-${m[3]}T${m[4]}:${m[5]}:${m[6]}.000Z`)
+}
+
+function formatCountdown(date) {
+  if (!date) return null
+  const diff = date.getTime() - Date.now()
+  if (diff <= 0) return 'Bald'
+  const totalMinutes = Math.floor(diff / 60000)
+  const days = Math.floor(totalMinutes / 1440)
+  const hours = Math.floor((totalMinutes % 1440) / 60)
+  const minutes = totalMinutes % 60
+  if (days > 0) return `${days}T ${hours}h ${minutes}min`
+  if (hours > 0) return `${hours}h ${minutes}min`
+  return `${minutes}min`
+}
+
+function formatWarStart(date) {
+  if (!date) return null
+  return date.toLocaleString('de-DE', {
+    weekday: 'short', day: '2-digit', month: '2-digit',
+    hour: '2-digit', minute: '2-digit',
+  })
+}
+
 function ProgressBar({ value, max, color = 'var(--color-brand)' }) {
   const pct = max > 0 ? Math.min(100, Math.round((value / max) * 100)) : 0
   return (
@@ -12,12 +40,57 @@ function ProgressBar({ value, max, color = 'var(--color-brand)' }) {
   )
 }
 
+function TrainingView({ warData, warRank }) {
+  const warStartDate = parseCrTimestamp(warData?.period_end_time)
+  const countdown = formatCountdown(warStartDate)
+  const warStartLabel = formatWarStart(warStartDate)
+  const clanCount = warData?.clan_count ?? 0
+
+  return (
+    <article className="panel war-card">
+      <header className="war-card-header">
+        <span className="war-card-title">⚔ Trainingsphase</span>
+        <span className="war-top-badge">Training</span>
+      </header>
+
+      <div className="war-training-body">
+        <div className="war-training-countdown-block">
+          <span className="war-training-countdown-label">Kriegstag beginnt in</span>
+          <strong className="war-training-countdown-value">{countdown ?? '—'}</strong>
+        </div>
+
+        <div className="war-training-meta">
+          {warStartLabel && (
+            <div className="war-training-meta-row">
+              <span className="war-training-meta-icon">🗓</span>
+              <span>{warStartLabel} Uhr</span>
+            </div>
+          )}
+          {clanCount > 0 && (
+            <div className="war-training-meta-row">
+              <span className="war-training-meta-icon">⚔</span>
+              <span>{clanCount} Clans nehmen teil</span>
+            </div>
+          )}
+          {warRank != null && (
+            <div className="war-training-meta-row">
+              <span className="war-training-meta-icon">🏆</span>
+              <span>Training-Platz <strong>#{warRank}</strong></span>
+            </div>
+          )}
+        </div>
+      </div>
+    </article>
+  )
+}
+
 function WarTop({ warData, warRank }) {
-  const isTraining = warData?.is_training
-  const label = isTraining ? 'Aktueller Krieg (Training)' : 'Aktueller Krieg'
+  if (warData?.is_training) {
+    return <TrainingView warData={warData} warRank={warRank} />
+  }
+
   const performers = warData?.performers ?? []
   const missingToday = warData?.missing_today ?? []
-
   const decksToday = warData?.decks_today ?? 0
   const decksTodayMax = warData?.decks_today_max ?? 0
   const decksTotal = warData?.decks_total ?? 0
@@ -27,8 +100,7 @@ function WarTop({ warData, warRank }) {
     <article className="panel war-card">
 
       <header className="war-card-header">
-        <span className="war-card-title">⚔ {label}</span>
-        {isTraining && <span className="war-top-badge">Training</span>}
+        <span className="war-card-title">⚔ Aktueller Krieg</span>
       </header>
 
       <div className="war-card-body">
