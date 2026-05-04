@@ -178,16 +178,28 @@ function WarChart({ wars, location }) {
   const data = wars.map((w, i) => ({
     label: w.created_at ? formatTimestampShort(w.created_at) : `Krieg ${i + 1}`,
     fame: w.fame ?? null,
-    rank: w.rank ?? null,
+    leaderboardRank: w.leaderboard_rank ?? null,
+    raceRank: w.race_rank ?? null,
   }))
 
-  const ranks = wars.map(w => w.rank).filter(r => r != null)
-  const rDomain = ranks.length
-    ? rankDomain([Math.min(...ranks), Math.max(...ranks)])
-    : [1, 5]
+  const lbRanks = wars.map(w => w.leaderboard_rank).filter(r => r != null)
+  const rDomain = lbRanks.length
+    ? rankDomain([Math.min(...lbRanks), Math.max(...lbRanks)])
+    : [1, 50]
+
+  const subtitle = location ? `Verlauf in ${location}` : 'Verlauf der Kriegs-Punkte'
+  const noLeaderboard = lbRanks.length === 0
 
   return (
-    <ChartShell title="Clan-Krieg" subtitle="Letzte abgeschlossene Kriege">
+    <ChartShell
+      title="Clan-Krieg"
+      subtitle={subtitle}
+      footer={
+        noLeaderboard
+          ? 'Bestenlisten-Rang wird ab jetzt täglich gesammelt — Verlauf in ein paar Tagen sichtbar.'
+          : null
+      }
+    >
       <ResponsiveContainer width="100%" height={280}>
         <ComposedChart data={data} margin={{ top: 10, right: 12, bottom: 4, left: 0 }}>
           <CartesianGrid stroke="var(--border-weak)" vertical={false} />
@@ -213,9 +225,16 @@ function WarChart({ wars, location }) {
           />
           <Tooltip
             contentStyle={{ borderRadius: 8, border: '1px solid var(--border-medium)' }}
-            formatter={(value, name) => {
-              if (name === 'Platz im Krieg') return [`#${value}`, name]
-              if (name === 'Fame') return [Number(value).toLocaleString('de-DE'), name]
+            formatter={(value, name, item) => {
+              if (name === 'Bestenlisten-Rang') return [`#${value}`, name]
+              if (name === 'Fame') {
+                const raceRank = item?.payload?.raceRank
+                const formatted = Number(value).toLocaleString('de-DE')
+                return [
+                  raceRank != null ? `${formatted}  (Platz im Krieg: #${raceRank})` : formatted,
+                  name,
+                ]
+              }
               return [value, name]
             }}
           />
@@ -233,8 +252,8 @@ function WarChart({ wars, location }) {
           <Line
             yAxisId="rank"
             type="monotone"
-            dataKey="rank"
-            name="Platz im Krieg"
+            dataKey="leaderboardRank"
+            name="Bestenlisten-Rang"
             stroke={COLOR_RANK}
             strokeWidth={2.5}
             strokeDasharray="4 4"

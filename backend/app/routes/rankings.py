@@ -1,4 +1,5 @@
 import requests
+from datetime import datetime, timezone
 from urllib.parse import quote
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
@@ -63,8 +64,34 @@ def get_rankings_history(
     }
 
 
+def _nearest_war_rank_snapshot(snapshots: list, target_ts: int):
+    """Find snapshot closest in time to target_ts whose war_rank is set."""
+    if not snapshots or not target_ts:
+        return None
+    target_date = datetime.fromtimestamp(target_ts, tz=timezone.utc).date()
+    best = None
+    best_delta = None
+    for s in snapshots:
+        if s.war_rank is None:
+            continue
+        try:
+            s_date = datetime.strptime(s.snapshot_date, "%Y-%m-%d").date()
+        except ValueError:
+            continue
+        delta = abs((s_date - target_date).days)
+        if best_delta is None or delta < best_delta:
+            best = s
+            best_delta = delta
+    if best is None or best_delta is None or best_delta > 14:
+        return None
+    return best
+
+
 @router.get("/rankings/war-log")
-def get_war_log(user: User = Depends(get_current_db_user)):
+def get_war_log(
+    user: User = Depends(get_current_db_user),
+    db: Session = Depends(get_db),
+):
     if not user.clan_tag:
         return {"wars": []}
 
@@ -83,6 +110,12 @@ def get_war_log(user: User = Depends(get_current_db_user)):
     raise_for_clash_api_error(response, "Failed to load river race log")
     items = response.json().get("items", [])
 
+    snapshots = (
+        db.query(ClanRankingSnapshot)
+        .filter(ClanRankingSnapshot.clan_tag == clan_tag)
+        .all()
+    )
+
     wars = []
     for item in items:
         standings = item.get("standings", []) or []
@@ -97,7 +130,7 @@ def get_war_log(user: User = Depends(get_current_db_user)):
             continue
 
         clan = own.get("clan", {})
-        rank = own.get("rank")
+        race_rank = own.get("rank")
         # CR API's clan.fame is unreliable — bricht außer in der Finalwoche jeder
         # Season auf einen kleinen Bruchstückwert zusammen. Echtes Total
         # = Summe der Spieler-Fame.
@@ -105,14 +138,19 @@ def get_war_log(user: User = Depends(get_current_db_user)):
         fame = sum((p or {}).get("fame", 0) for p in participants)
         season = item.get("seasonId")
         section = item.get("sectionIndex")
-        created_at = item.get("createdDate")
+        created_at_raw = item.get("createdDate")
+        created_at = parse_cr_timestamp(created_at_raw) if created_at_raw else None
+
+        nearest = _nearest_war_rank_snapshot(snapshots, created_at)
+        leaderboard_rank = nearest.war_rank if nearest else None
 
         wars.append({
             "season_id": season,
             "section_index": section,
-            "rank": rank,
+            "race_rank": race_rank,
+            "leaderboard_rank": leaderboard_rank,
             "fame": fame,
-            "created_at": parse_cr_timestamp(created_at) if created_at else None,
+            "created_at": created_at,
         })
 
     wars.sort(key=lambda w: (w["created_at"] or 0))
