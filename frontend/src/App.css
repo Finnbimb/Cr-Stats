@@ -539,6 +539,142 @@ input:focus {
   align-items: baseline;
 }
 
+
+/* ════════════════════════════════════════════════════════════
+   WAR-SEITE — KRIEGSWOCHE FORTSCHRITT
+   ════════════════════════════════════════════════════════════ */
+
+.war-week {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  padding: 1.25rem 1rem 1rem;
+}
+
+.war-week-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 0 0.25rem;
+}
+
+.war-week-title {
+  margin: 0;
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.war-week-remaining {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.war-week-phase-label {
+  color: var(--text-primary);
+  font-weight: 700;
+}
+
+.war-week-phase-sep {
+  color: var(--border-medium);
+}
+
+.war-week-track {
+  position: relative;
+  display: flex;
+  width: 100%;
+  height: 14px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: var(--border-weak);
+}
+
+.war-week-segment {
+  position: relative;
+  height: 100%;
+}
+
+.war-week-segment--training {
+  background: color-mix(in srgb, var(--color-brand) 14%, transparent);
+}
+
+.war-week-segment--war {
+  background: color-mix(in srgb, var(--color-accent-red) 14%, transparent);
+}
+
+.war-week-fill {
+  height: 100%;
+  transition: width 0.4s ease;
+}
+
+.war-week-fill--training {
+  background: var(--color-brand);
+}
+
+.war-week-fill--war {
+  background: var(--color-accent-red);
+}
+
+.war-week-now {
+  position: absolute;
+  top: -4px;
+  bottom: -4px;
+  width: 3px;
+  border-radius: 2px;
+  background: var(--text-primary);
+  box-shadow: 0 0 0 2px var(--bg-panel);
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.war-week-labels {
+  position: relative;
+  height: 2.6rem;
+  margin-top: 0.25rem;
+  font-size: 0.74rem;
+}
+
+.war-week-label-group {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  line-height: 1.2;
+}
+
+.war-week-label-group:first-child {
+  left: 0;
+  align-items: flex-start;
+}
+
+.war-week-label-group--mid {
+  transform: translateX(-50%);
+  align-items: center;
+  text-align: center;
+}
+
+.war-week-label-group--right {
+  right: 0;
+  align-items: flex-end;
+}
+
+.war-week-phase {
+  color: var(--text-muted);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.war-week-time {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
 /* Fehlende Battles */
 .war-missing {
   display: flex;

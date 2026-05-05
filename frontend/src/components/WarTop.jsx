@@ -48,7 +48,7 @@ function periodProgress(warData, warLog) {
   const elapsed = Math.max(0, Math.min(total, now - startMs))
   const pct = Math.round((elapsed / total) * 100)
   const remainingMs = Math.max(0, endMs - now)
-  const remainingH = Math.round(remainingMs / (1000 * 60 * 60))
+  const remainingH = Math.round(remainingMs / (1000 * 60 * 60)) // ms to hours
   let remainingLabel
   if (remainingH < 24) {
     remainingLabel = `noch ${remainingH} ${remainingH === 1 ? 'Stunde' : 'Stunden'}`

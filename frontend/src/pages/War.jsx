@@ -6,12 +6,102 @@ const SORT_OPTIONS = [
   { value: 'decks_used_today', label: 'Heute gespielt' },
 ]
 
+const TRAINING_DAYS = 3
+const WAR_DAYS = 4
+const TOTAL_DAYS = TRAINING_DAYS + WAR_DAYS
+const SHORT_DAYS = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa']
+
 function ProgressBar({ value, max, color = 'var(--color-brand)' }) {
   const pct = max > 0 ? Math.min(100, Math.round((value / max) * 100)) : 0
   return (
     <div className="war-progress-wrap">
       <div className="war-progress-bar" style={{ width: `${pct}%`, background: color }} />
     </div>
+  )
+}
+
+function formatRemaining(ms) {
+  const totalH = Math.max(0, Math.floor(ms / (1000 * 60 * 60)))
+  if (totalH < 24) {
+    return `noch ${totalH} ${totalH === 1 ? 'Stunde' : 'Stunden'}`
+  }
+  const d = Math.floor(totalH / 24)
+  const h = totalH % 24
+  if (h === 0) return `noch ${d} ${d === 1 ? 'Tag' : 'Tage'}`
+  return `noch ${d} ${d === 1 ? 'Tag' : 'Tage'} ${h} Std`
+}
+
+function formatDayTime(ms) {
+  const d = new Date(ms)
+  const day = SHORT_DAYS[d.getDay()]
+  const time = d.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })
+  return `${day} ${time}`
+}
+
+function WeekProgress({ warData, warLog }) {
+  const wars = warLog?.wars
+  if (!wars?.length) return null
+  const lastTs = wars[wars.length - 1]?.created_at
+  if (!lastTs) return null
+
+  const lastRaceEndMs = lastTs * 1000
+  const trainingEndMs = lastRaceEndMs + TRAINING_DAYS * 24 * 60 * 60 * 1000
+  const raceEndMs = lastRaceEndMs + TOTAL_DAYS * 24 * 60 * 60 * 1000
+  const totalMs = raceEndMs - lastRaceEndMs
+  const nowMs = Date.now()
+
+  const elapsedTotal = Math.max(0, Math.min(totalMs, nowMs - lastRaceEndMs))
+  const nowPct = (elapsedTotal / totalMs) * 100
+
+  const isTraining = !!warData?.is_training
+  const trainingFillPct = Math.max(0, Math.min(100,
+    ((nowMs - lastRaceEndMs) / (trainingEndMs - lastRaceEndMs)) * 100,
+  ))
+  const warFillPct = Math.max(0, Math.min(100,
+    ((nowMs - trainingEndMs) / (raceEndMs - trainingEndMs)) * 100,
+  ))
+
+  const phaseEndMs = isTraining ? trainingEndMs : raceEndMs
+  const remainingLabel = formatRemaining(phaseEndMs - nowMs)
+  const phaseLabel = isTraining ? 'Training läuft' : 'Kriegstage laufen'
+
+  return (
+    <article className="panel war-week">
+      <header className="war-week-header">
+        <h3 className="war-week-title">Kriegswoche</h3>
+        <span className="war-week-remaining">
+          <span className="war-week-phase-label">{phaseLabel}</span>
+          <span className="war-week-phase-sep">·</span>
+          {remainingLabel}
+        </span>
+      </header>
+
+      <div className="war-week-track">
+        <div className="war-week-segment war-week-segment--training" style={{ flex: TRAINING_DAYS }}>
+          <div className="war-week-fill war-week-fill--training" style={{ width: `${trainingFillPct}%` }} />
+        </div>
+        <div className="war-week-segment war-week-segment--war" style={{ flex: WAR_DAYS }}>
+          <div className="war-week-fill war-week-fill--war" style={{ width: `${warFillPct}%` }} />
+        </div>
+
+        <div className="war-week-now" style={{ left: `${nowPct}%` }} aria-label="aktueller Zeitpunkt" />
+      </div>
+
+      <div className="war-week-labels">
+        <div className="war-week-label-group">
+          <span className="war-week-phase">Training</span>
+          <span className="war-week-time">{formatDayTime(lastRaceEndMs)}</span>
+        </div>
+        <div className="war-week-label-group war-week-label-group--mid" style={{ left: `${(TRAINING_DAYS / TOTAL_DAYS) * 100}%` }}>
+          <span className="war-week-phase">Kriegstage</span>
+          <span className="war-week-time">{formatDayTime(trainingEndMs)}</span>
+        </div>
+        <div className="war-week-label-group war-week-label-group--right">
+          <span className="war-week-phase">Race-Ende</span>
+          <span className="war-week-time">{formatDayTime(raceEndMs)}</span>
+        </div>
+      </div>
+    </article>
   )
 }
 
@@ -64,7 +154,7 @@ function WarHeader({ data }) {
   )
 }
 
-export default function War({ warData, participantsData, isLoading }) {
+export default function War({ warData, participantsData, warLog, isLoading }) {
   const [search, setSearch] = useState('')
   const [sortBy, setSortBy] = useState('decks_used')
   const [reversed, setReversed] = useState(false)
@@ -90,6 +180,7 @@ export default function War({ warData, participantsData, isLoading }) {
   return (
     <section className="page-stack">
       <WarHeader data={participantsData ?? warData} />
+      <WeekProgress warData={participantsData ?? warData} warLog={warLog} />
 
       <div className="panel">
         <div className="war-controls">

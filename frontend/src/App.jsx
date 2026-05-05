@@ -218,7 +218,14 @@ function App() {
             isLoading={isRankingsLoading && !rankingsHistory && !warLog}
           />
         )}
-        {currentPage === 'war' && <War warData={warData} participantsData={warParticipantsData} isLoading={isLoading && !warParticipantsData} />}
+        {currentPage === 'war' && (
+          <War
+            warData={warData}
+            participantsData={warParticipantsData}
+            warLog={warLog}
+            isLoading={isLoading && !warParticipantsData}
+          />
+        )}
         {currentPage === 'profile' && (
           <Profile
             token={token}
