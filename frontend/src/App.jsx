@@ -199,6 +199,7 @@ function App() {
             onRefresh={() => loadAllData(true)}
             avgTrophies={avgTrophies}
             warData={warData}
+            warLog={warLog}
             membersData={membersData}
           />
         )}

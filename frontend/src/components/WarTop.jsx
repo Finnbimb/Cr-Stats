@@ -1,5 +1,103 @@
 const MEDAL = { 1: '🥇', 2: '🥈', 3: '🥉' }
 
+const DAY_NAMES = ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag']
+const WAR_START_WEEKDAY_UTC = 4 // Donnerstag
+
+function nextWarStart(warLog) {
+  const wars = warLog?.wars
+  if (!wars?.length) return null
+  const last = wars[wars.length - 1]
+  const lastTs = last?.created_at
+  if (!lastTs) return null
+
+  const lastDate = new Date(lastTs * 1000)
+  const now = new Date()
+  const target = new Date(now)
+  target.setUTCHours(
+    lastDate.getUTCHours(),
+    lastDate.getUTCMinutes(),
+    lastDate.getUTCSeconds(),
+    0,
+  )
+  const daysUntilTarget = (WAR_START_WEEKDAY_UTC - target.getUTCDay() + 7) % 7
+  target.setUTCDate(target.getUTCDate() + daysUntilTarget)
+  if (target.getTime() <= now.getTime()) {
+    target.setUTCDate(target.getUTCDate() + 7)
+  }
+  return target
+}
+
+function periodProgress(warData, warLog) {
+  const wars = warLog?.wars
+  if (!wars?.length) return null
+  const last = wars[wars.length - 1]
+  const lastTs = last?.created_at
+  if (!lastTs) return null
+
+  const lastRaceEndMs = lastTs * 1000
+  const trainingEndMs = lastRaceEndMs + 3 * 24 * 60 * 60 * 1000
+  const warEndMs = lastRaceEndMs + 7 * 24 * 60 * 60 * 1000
+  const now = Date.now()
+
+  const isTraining = !!warData?.is_training
+  const startMs = isTraining ? lastRaceEndMs : trainingEndMs
+  const endMs = isTraining ? trainingEndMs : warEndMs
+  const total = endMs - startMs
+  if (total <= 0) return null
+
+  const elapsed = Math.max(0, Math.min(total, now - startMs))
+  const pct = Math.round((elapsed / total) * 100)
+  const remainingMs = Math.max(0, endMs - now)
+  const remainingH = Math.round(remainingMs / (1000 * 60 * 60))
+  let remainingLabel
+  if (remainingH < 24) {
+    remainingLabel = `noch ${remainingH} ${remainingH === 1 ? 'Stunde' : 'Stunden'}`
+  } else {
+    const d = Math.round(remainingH / 24)
+    remainingLabel = `noch ${d} ${d === 1 ? 'Tag' : 'Tage'}`
+  }
+  return { pct, isTraining, remainingLabel }
+}
+
+function PeriodProgressBar({ progress }) {
+  if (!progress) return null
+  const color = progress.isTraining ? 'var(--color-brand)' : 'var(--color-accent-red)'
+  const label = progress.isTraining ? 'Trainingsphase' : 'Kriegstage'
+  return (
+    <div className="war-period-progress">
+      <div className="war-period-progress-header">
+        <span className="war-stat-label">{label}</span>
+        <span className="war-stat-count">{progress.remainingLabel}</span>
+      </div>
+      <div className="war-progress-wrap">
+        <div
+          className="war-progress-bar"
+          style={{ width: `${progress.pct}%`, background: color }}
+        />
+      </div>
+    </div>
+  )
+}
+
+function formatWarStart(date) {
+  if (!date) return null
+  const now = new Date()
+  const diffMs = date.getTime() - now.getTime()
+  const diffH = Math.round(diffMs / (1000 * 60 * 60))
+
+  const dayName = DAY_NAMES[date.getDay()]
+  const time = date.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })
+
+  let relative
+  if (diffH < 24) {
+    relative = `in ${diffH} ${diffH === 1 ? 'Stunde' : 'Stunden'}`
+  } else {
+    const diffDays = Math.round(diffH / 24)
+    relative = `in ${diffDays} ${diffDays === 1 ? 'Tag' : 'Tagen'}`
+  }
+  return `${dayName}, ${time} Uhr (${relative})`
+}
+
 function ProgressBar({ value, max, color = 'var(--color-brand)' }) {
   const pct = max > 0 ? Math.min(100, Math.round((value / max) * 100)) : 0
   return (
@@ -12,9 +110,12 @@ function ProgressBar({ value, max, color = 'var(--color-brand)' }) {
   )
 }
 
-function TrainingView({ warData, warRank }) {
+function TrainingView({ warData, warRank, warLog }) {
   const clanCount = warData?.clan_count ?? 0
   const participantCount = warData?.participant_count ?? 0
+  const warStart = nextWarStart(warLog)
+  const warStartLabel = formatWarStart(warStart)
+  const progress = periodProgress(warData, warLog)
 
   return (
     <a href="#/war" className="panel war-card war-card--link">
@@ -41,19 +142,23 @@ function TrainingView({ warData, warRank }) {
               <span>{participantCount} Mitglieder nehmen teil</span>
             </div>
           )}
-          <div className="war-training-meta-row">
-            <span className="war-training-meta-icon">⏳</span>
-            <span>Kriegstag beginnt morgen</span>
-          </div>
+          {warStartLabel && (
+            <div className="war-training-meta-row">
+              <span className="war-training-meta-icon">⏳</span>
+              <span>Kriegstag beginnt {warStartLabel}</span>
+            </div>
+          )}
         </div>
+
+        <PeriodProgressBar progress={progress} />
       </div>
     </a>
   )
 }
 
-function WarTop({ warData, warRank }) {
+function WarTop({ warData, warRank, warLog }) {
   if (warData?.is_training) {
-    return <TrainingView warData={warData} warRank={warRank} />
+    return <TrainingView warData={warData} warRank={warRank} warLog={warLog} />
   }
 
   const performers = warData?.performers ?? []
@@ -62,6 +167,7 @@ function WarTop({ warData, warRank }) {
   const decksTodayMax = warData?.decks_today_max ?? 0
   const decksTotal = warData?.decks_total ?? 0
   const decksTotalMax = warData?.decks_total_max ?? 0
+  const progress = periodProgress(warData, warLog)
 
   return (
     <a href="#/war" className="panel war-card war-card--link">
@@ -96,6 +202,8 @@ function WarTop({ warData, warRank }) {
             </div>
             <ProgressBar value={decksTotal} max={decksTotalMax} color="var(--color-accent-green)" />
           </div>
+
+          <PeriodProgressBar progress={progress} />
         </div>
 
       </div>

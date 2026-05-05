@@ -526,6 +526,19 @@ input:focus {
   flex-shrink: 0;
 }
 
+.war-period-progress {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  margin-top: 0.25rem;
+}
+
+.war-period-progress-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
 /* Fehlende Battles */
 .war-missing {
   display: flex;

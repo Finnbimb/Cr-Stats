@@ -18,7 +18,7 @@ function calcActiveMembers(members) {
   return { active, total: members.length }
 }
 
-function Dashboard({ data, error, isLoading, avgTrophies, warData, membersData }) {
+function Dashboard({ data, error, isLoading, avgTrophies, warData, warLog, membersData }) {
   if (isLoading) {
     return <section className="panel">Dashboard wird geladen...</section>
   }
@@ -87,7 +87,7 @@ function Dashboard({ data, error, isLoading, avgTrophies, warData, membersData }
         </div>
       </div>
 
-      <WarTop warData={warData} warRank={warData?.war_rank ?? null} />
+      <WarTop warData={warData} warRank={warData?.war_rank ?? null} warLog={warLog} />
 
     </section>
   )
