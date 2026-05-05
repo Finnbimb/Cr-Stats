@@ -60,15 +60,15 @@ function Dashboard({ data, error, isLoading, avgTrophies, warData, membersData }
       <div className="dashboard-left">
         <div className="card-grid card-grid--2col">
 
-          <article className="panel stat-card stat-card--rank">
+          <a href="#/rankings" className="panel stat-card stat-card--rank stat-card--link">
             <span className="stat-label">Leaderboard Rang ({data.location})</span>
             <strong>{data.leaderboard_rank != null ? `#${data.leaderboard_rank}` : '—'}</strong>
-          </article>
+          </a>
 
-          <article className="panel stat-card stat-card--war">
+          <a href="#/rankings" className="panel stat-card stat-card--war stat-card--link">
             <span className="stat-label">War Rang ({data.location})</span>
             <strong>{data.war_rank != null ? `#${data.war_rank}` : '—'}</strong>
-          </article>
+          </a>
 
           <article className="panel stat-card stat-card--trophies">
             <span className="stat-label">Ø Trophäen</span>

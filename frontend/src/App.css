@@ -107,6 +107,17 @@
   line-height: 1.15;
 }
 
+.stat-card--link {
+  display: flex;
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+}
+
+.stat-card--link:hover {
+  border-color: var(--color-brand-border);
+}
+
 .stat-card--clan     { --stat-accent: var(--color-brand); }
 .stat-card--user     { --stat-accent: var(--color-accent-green); }
 .stat-card--tag      { --stat-accent: var(--color-accent-cyan); }
