@@ -226,7 +226,10 @@ function WarTop({ warData, warRank, warLog }) {
       {missingToday.length > 0 && (
         <div className="war-missing">
           <span className="war-missing-icon">⚠</span>
-          <span>Fehlende Battles heute: {missingToday.join(', ')}</span>
+          <span>
+            Fehlende Battles heute: {missingToday.slice(0, 5).join(', ')}
+            {missingToday.length > 5 && ` +${missingToday.length - 5} weitere`}
+          </span>
         </div>
       )}
 
