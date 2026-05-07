@@ -1,17 +1,13 @@
-import requests
 from datetime import datetime, timezone
-from urllib.parse import quote
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.dependencies import get_current_db_user, get_db
 from app.models import ClanRankingSnapshot, User
 from app.services.clash_royale import (
-    get_cr_api_headers,
-    raise_for_clash_api_error,
+    fetch_riverracelog,
     normalize_clan_tag,
     parse_cr_timestamp,
-    find_clan_by_tag,
 )
 from app.services.ranking_snapshots import take_snapshot_for_clan
 
@@ -96,19 +92,11 @@ def get_war_log(
         return {"wars": []}
 
     clan_tag = normalize_clan_tag(user.clan_tag)
-    encoded_tag = quote(clan_tag)
 
     try:
-        response = requests.get(
-            f"https://api.clashroyale.com/v1/clans/{encoded_tag}/riverracelog",
-            headers=get_cr_api_headers(),
-            timeout=10,
-        )
-    except requests.RequestException:
+        items = fetch_riverracelog(clan_tag)
+    except HTTPException:
         return {"wars": []}
-
-    raise_for_clash_api_error(response, "Failed to load river race log")
-    items = response.json().get("items", [])
 
     snapshots = (
         db.query(ClanRankingSnapshot)

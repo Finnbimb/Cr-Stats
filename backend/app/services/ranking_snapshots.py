@@ -1,14 +1,13 @@
 import asyncio
-import requests
 from datetime import datetime, timezone
 from time import time
-from urllib.parse import quote
+
+from fastapi import HTTPException
 
 from app.database import SessionLocal
 from app.models import ClanRankingSnapshot, User
 from app.services.clash_royale import (
-    get_cr_api_headers,
-    raise_for_clash_api_error,
+    cached_get,
     find_clan_by_tag,
     fetch_clan_by_tag,
 )
@@ -24,16 +23,14 @@ def today_str() -> str:
 def fetch_clan_in_ranking(location_id: int, ranking_path: str, clan_tag: str):
     """Fetch a single ranking page, return our clan's entry or None."""
     try:
-        response = requests.get(
+        data = cached_get(
             f"https://api.clashroyale.com/v1/locations/{location_id}/{ranking_path}",
-            headers=get_cr_api_headers(),
-            timeout=10,
+            ttl=600,
+            fallback_detail="Failed to load ranking",
         )
-    except requests.RequestException:
+    except HTTPException:
         return None
-    if not response.ok:
-        return None
-    clans = response.json().get("items", [])
+    clans = data.get("items", [])
     return find_clan_by_tag(clans, clan_tag)
 
 

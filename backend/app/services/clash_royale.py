@@ -1,3 +1,6 @@
+import time
+from threading import Lock
+
 import requests
 from datetime import datetime, timezone
 from fastapi import HTTPException
@@ -11,6 +14,13 @@ OUR_CLAN_TAG = "#8R8U0VQG"
 GERMANY_LOCATION_NAME = "Germany"
 
 
+# Process-wide TTL cache for CR-API GET responses, keyed by URL. Lives for the
+# lifetime of the uvicorn process (or bot process); flushed on restart.
+# Mehrere User aus dem gleichen Clan teilen sich denselben Eintrag, was die
+# CR-API-Last drastisch reduziert.
+_api_cache: dict[str, tuple[float, dict]] = {}
+_cache_lock = Lock()
+
 
 def get_cr_api_headers():
     cr_api_token = get_cr_api_token()
@@ -21,6 +31,30 @@ def get_cr_api_headers():
     return {
         "Authorization": f"Bearer {cr_api_token}"
     }
+
+
+def cached_get(url: str, ttl: int, fallback_detail: str) -> dict:
+    """GET against the CR API with a shared in-memory TTL cache."""
+    now = time.monotonic()
+
+    with _cache_lock:
+        entry = _api_cache.get(url)
+        if entry and entry[0] > now:
+            return entry[1]
+
+    # Cache-Miss: HTTP-Call bewusst OHNE Lock — sonst blockiert ein langsamer
+    # CR-Call alle anderen Reader für die Dauer der Anfrage.
+    try:
+        response = requests.get(url, headers=get_cr_api_headers(), timeout=10)
+    except requests.RequestException as exc:
+        raise HTTPException(status_code=502, detail=fallback_detail) from exc
+
+    raise_for_clash_api_error(response, fallback_detail)
+    data = response.json()
+
+    with _cache_lock:
+        _api_cache[url] = (now + ttl, data)
+    return data
 
 
 def raise_for_clash_api_error(response: requests.Response, fallback_detail: str):
@@ -89,79 +123,46 @@ def normalize_clan_tag(clan_tag: str):
 def fetch_clan_by_tag(clan_tag: str):
     clan_tag = normalize_clan_tag(clan_tag)
     encoded_tag = quote(clan_tag)
-
-    try:
-        response = requests.get(
-            f"https://api.clashroyale.com/v1/clans/{encoded_tag}",
-            headers=get_cr_api_headers(),
-            timeout=10,
-        )
-    except requests.RequestException as exc:
-        raise HTTPException(
-            status_code=502,
-            detail="Failed to load clan from Clash Royale API",
-        ) from exc
-
-    raise_for_clash_api_error(response, "Failed to load clan from Clash Royale API")
-
-    clan_data = response.json()
+    clan_data = cached_get(
+        f"https://api.clashroyale.com/v1/clans/{encoded_tag}",
+        ttl=300,
+        fallback_detail="Failed to load clan from Clash Royale API",
+    )
     location = clan_data.get("location") or {}
     if not location.get("id") or not location.get("name"):
         raise HTTPException(status_code=400, detail="Clan has no valid location")
 
     return clan_data
 
-# ONLY USED FOR FRONTEND, BOT HAS ITS OWN FUNCTION 
+# ONLY USED FOR FRONTEND, BOT HAS ITS OWN FUNCTION
 def fetch_user_clan_ranking(user: User):
-    try:
-        response = requests.get(
-            f"https://api.clashroyale.com/v1/locations/{user.location_id}/rankings/clans",
-            headers=get_cr_api_headers(),
-            timeout=10,
-        )
-    except requests.RequestException as exc:
-        raise HTTPException(
-            status_code=502,
-            detail="Failed to load clan ranking from Clash Royale API",
-        ) from exc
-
-    raise_for_clash_api_error(response, "Failed to load clan ranking from Clash Royale API")
-
-    clans = response.json().get("items", [])
+    data = cached_get(
+        f"https://api.clashroyale.com/v1/locations/{user.location_id}/rankings/clans",
+        ttl=600,
+        fallback_detail="Failed to load clan ranking from Clash Royale API",
+    )
+    clans = data.get("items", [])
     return find_clan_by_tag(clans, user.clan_tag)
 
+
 def fetch_user_clanwar_ranking(user: User):
-    try:
-        response = requests.get(
-            f"https://api.clashroyale.com/v1/locations/{user.location_id}/rankings/clanwars",
-            headers=get_cr_api_headers(),
-            timeout=10,
-        )
-    except requests.RequestException as exc:
-        raise HTTPException(
-            status_code=502,
-            detail="Failed to load clan war ranking from Clash Royale API",
-        ) from exc
-
-    raise_for_clash_api_error(response, "Failed to load clan war ranking from Clash Royale API")
-
-    clans = response.json().get("items", [])
+    data = cached_get(
+        f"https://api.clashroyale.com/v1/locations/{user.location_id}/rankings/clanwars",
+        ttl=600,
+        fallback_detail="Failed to load clan war ranking from Clash Royale API",
+    )
+    clans = data.get("items", [])
     return find_clan_by_tag(clans, user.clan_tag)
 
 
 def fetch_current_riverrace_for_tag(clan_tag: str) -> dict:
     clan_tag = normalize_clan_tag(clan_tag)
     encoded_tag = quote(clan_tag)
-    try:
-        response = requests.get(
-            f"https://api.clashroyale.com/v1/clans/{encoded_tag}/currentriverrace",
-            headers=get_cr_api_headers(),
-            timeout=10,
-        )
-    except requests.RequestException as exc:
-        raise HTTPException(status_code=502, detail="Failed to load current river race") from exc
-    raise_for_clash_api_error(response, "Failed to load current river race")
-    data = response.json()
+    data = cached_get(
+        f"https://api.clashroyale.com/v1/clans/{encoded_tag}/currentriverrace",
+        ttl=60,
+        fallback_detail="Failed to load current river race",
+    )
     clan = data.get("clan") or {}
     clans = data.get("clans", [])
 
@@ -188,29 +189,32 @@ def fetch_current_riverrace_for_tag(clan_tag: str) -> dict:
     }
 
 
-def fetch_riverracelog_participants(clan_tag: str) -> list[dict]:
+def fetch_riverracelog(clan_tag: str) -> list[dict]:
+    """Raw riverracelog items for a clan — cached, used by multiple consumers."""
     clan_tag = normalize_clan_tag(clan_tag)
     encoded_tag = quote(clan_tag)
-    try:
-        response = requests.get(
-            f"https://api.clashroyale.com/v1/clans/{encoded_tag}/riverracelog",
-            headers=get_cr_api_headers(),
-            timeout=10,
-        )
-    except requests.RequestException as exc:
-        raise HTTPException(status_code=502, detail="Failed to load river race log") from exc
-    raise_for_clash_api_error(response, "Failed to load river race log")
-    items = response.json().get("items", [])
+    data = cached_get(
+        f"https://api.clashroyale.com/v1/clans/{encoded_tag}/riverracelog",
+        ttl=1800,
+        fallback_detail="Failed to load river race log",
+    )
+    return data.get("items", [])
+
+
+def fetch_riverracelog_participants(clan_tag: str) -> list[dict]:
+    items = fetch_riverracelog(clan_tag)
     if not items:
         return []
+    clan_tag_normalized = normalize_clan_tag(clan_tag)
     standings = items[0].get("standings", [])
     own = next(
-        (s for s in standings if normalize_clan_tag(s.get("clan", {}).get("tag", "")) == clan_tag),
+        (s for s in standings if normalize_clan_tag(s.get("clan", {}).get("tag", "")) == clan_tag_normalized),
         None,
     )
     if not own:
         return []
     return own.get("clan", {}).get("participants", [])
+
 
 def fetch_ranked_clan_for_location(*, ranking_path: str, fallback_detail: str, clan_tag: str = OUR_CLAN_TAG):
     locations = fetch_locations()
@@ -218,21 +222,12 @@ def fetch_ranked_clan_for_location(*, ranking_path: str, fallback_detail: str, c
     if not germany:
         return None
 
-    try:
-        response = requests.get(
-            f"https://api.clashroyale.com/v1/locations/{germany['id']}/{ranking_path}",
-            headers=get_cr_api_headers(),
-            timeout=10,
-        )
-    except requests.RequestException as exc:
-        raise HTTPException(
-            status_code=502,
-            detail=fallback_detail,
-        ) from exc
-
-    raise_for_clash_api_error(response, fallback_detail)
-
-    clans = response.json().get("items", [])
+    data = cached_get(
+        f"https://api.clashroyale.com/v1/locations/{germany['id']}/{ranking_path}",
+        ttl=600,
+        fallback_detail=fallback_detail,
+    )
+    clans = data.get("items", [])
     return find_clan_by_tag(clans, clan_tag)
 
 
@@ -251,21 +246,11 @@ def fetch_clanwar_ranking_germany():
     )
 
 def fetch_locations():
-    try:
-        locations = requests.get(
-            "https://api.clashroyale.com/v1/locations",
-            headers=get_cr_api_headers(),
-            timeout=10,
-        )
-    except requests.RequestException as exc:
-        raise HTTPException(
-            status_code=502,
-            detail="Failed to load locations from Clash Royale API",
-        ) from exc
-
-    raise_for_clash_api_error(locations, "Failed to load locations from Clash Royale API")
-
-    data = locations.json()
+    data = cached_get(
+        "https://api.clashroyale.com/v1/locations",
+        ttl=86400,
+        fallback_detail="Failed to load locations from Clash Royale API",
+    )
     return [
         {
             "id": item["id"],
@@ -274,25 +259,16 @@ def fetch_locations():
         for item in data.get("items", [])
         if "id" in item and "name" in item
     ]
-    
+
 def fetch_player_by_tag(player_tag: str):
     player_tag = normalize_player_tag(player_tag)
     encoded_tag = quote(player_tag)
-    
-    try:
-        response = requests.get(
-            f"https://api.clashroyale.com/v1/players/{encoded_tag}",
-            headers=get_cr_api_headers(),
-            timeout=10,
-        )
-    except requests.RequestException as exc:
-        raise HTTPException(
-            status_code=502,
-            detail="Failed to load player from Clash Royale API",
-        ) from exc
-        
-    raise_for_clash_api_error(response, "Failed to load player from Clash Royale API")
-    player_data = response.json()
+
+    player_data = cached_get(
+        f"https://api.clashroyale.com/v1/players/{encoded_tag}",
+        ttl=300,
+        fallback_detail="Failed to load player from Clash Royale API",
+    )
     clan_data = player_data.get("clan") or {}
 
     return {
@@ -301,72 +277,54 @@ def fetch_player_by_tag(player_tag: str):
         "clan_tag": clan_data.get("tag"),
         "clan_name": clan_data.get("name"),
     }
-    
+
 def fetch_clan_members(clan_tag: str) -> list[dict]:
     clan_tag = normalize_clan_tag(clan_tag)
     encoded_tag = quote(clan_tag)
 
-    try:
-        response = requests.get(
-            f"https://api.clashroyale.com/v1/clans/{encoded_tag}/members",
-            headers=get_cr_api_headers(),
-            timeout=10,
-        )
-    except requests.RequestException as exc:
-        raise HTTPException(
-            status_code=502,
-            detail="Failed to load clan members from Clash Royale API",
-        ) from exc
-
-    raise_for_clash_api_error(response, "Failed to load clan members from Clash Royale API")
-    return response.json().get("items", [])
+    data = cached_get(
+        f"https://api.clashroyale.com/v1/clans/{encoded_tag}/members",
+        ttl=120,
+        fallback_detail="Failed to load clan members from Clash Royale API",
+    )
+    return data.get("items", [])
 
 
 def fetch_current_clan_members():
     return fetch_clan_members(OUR_CLAN_TAG)
 
 def get_current_riverrace():
-    try:
-        # "#" in clan tags must be URL-encoded as "%23"
-        encoded_tag = quote(OUR_CLAN_TAG)
-        
-        response = requests.get(
-            f"https://api.clashroyale.com/v1/clans/{encoded_tag}/currentriverrace",
-            headers=get_cr_api_headers(),
-            timeout=10,
-        )
-        raise_for_clash_api_error(response, "Failed to load current river race from Clash Royale API")
-        response_data = response.json()
-        own_clan = find_clan_by_tag(response_data.get("clans", []), OUR_CLAN_TAG)
+    encoded_tag = quote(OUR_CLAN_TAG)
+    response_data = cached_get(
+        f"https://api.clashroyale.com/v1/clans/{encoded_tag}/currentriverrace",
+        ttl=60,
+        fallback_detail="Failed to load current river race from Clash Royale API",
+    )
+    own_clan = find_clan_by_tag(response_data.get("clans", []), OUR_CLAN_TAG)
 
-        if own_clan is None:
-            own_clan = response_data.get("clan")
+    if own_clan is None:
+        own_clan = response_data.get("clan")
 
-        if own_clan is None:
-            return None
+    if own_clan is None:
+        return None
 
-        # everything of our clan  + sectionIndex(day), periodtype(training, war), state
-        return {
-            **own_clan,
-            "sectionIndex": response_data.get("sectionIndex"),
-            "periodType": response_data.get("periodType"),
-            "state": response_data.get("state"),
-        }
-    except requests.RequestException as exc:
-        raise HTTPException(
-            status_code=502, 
-            detail="Failed to load current river race from Clash Royale API",
-        ) from exc
-        
-        
+    # everything of our clan  + sectionIndex(day), periodtype(training, war), state
+    return {
+        **own_clan,
+        "sectionIndex": response_data.get("sectionIndex"),
+        "periodType": response_data.get("periodType"),
+        "state": response_data.get("state"),
+    }
+
+
 def extract_riverrace_info(clan_data: dict):
     if not clan_data:
         return None
-    
+
     clan_members = fetch_current_clan_members()
 
     participants = clan_data.get("participants", [])
-    
+
 
     return {
         "clan_tag": clan_data.get("tag"),
@@ -385,7 +343,7 @@ def extract_riverrace_info(clan_data: dict):
             for member in participants if member.get("tag") in {m.get("tag") for m in clan_members}
         ],
     }
-    
+
 def parse_cr_timestamp(date_str: str) -> int:
     dt = datetime.strptime(date_str, "%Y%m%dT%H%M%S.%fZ").replace(tzinfo=timezone.utc)
     return int(dt.timestamp())
@@ -393,21 +351,7 @@ def parse_cr_timestamp(date_str: str) -> int:
 
 def fetch_war_creation_date() -> int | None:
     """Returns Unix timestamp of when the current war week started."""
-    encoded_tag = quote(OUR_CLAN_TAG)
-    try:
-        response = requests.get(
-            f"https://api.clashroyale.com/v1/clans/{encoded_tag}/riverracelog",
-            headers=get_cr_api_headers(),
-            timeout=10,
-        )
-    except requests.RequestException as exc:
-        raise HTTPException(
-            status_code=502,
-            detail="Failed to load river race log from Clash Royale API",
-        ) from exc
-
-    raise_for_clash_api_error(response, "Failed to load river race log from Clash Royale API")
-    items = response.json().get("items", [])
+    items = fetch_riverracelog(OUR_CLAN_TAG)
     if not items:
         return None
 
@@ -416,7 +360,6 @@ def fetch_war_creation_date() -> int | None:
         return None
 
     return parse_cr_timestamp(creation_date_str)
-
 
 
 
