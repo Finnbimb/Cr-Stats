@@ -174,7 +174,10 @@ def fetch_current_riverrace_for_tag(clan_tag: str) -> dict:
 
     war_rank = None
     if clans:
-        sorted_clans = sorted(clans, key=lambda c: c.get("fame", 0), reverse=True)
+        # clan.fame ist außerhalb der Finalwoche oft Müll → echtes Total = Summe Spieler-Fame.
+        def _total_fame(c):
+            return sum((p or {}).get("fame", 0) for p in (c.get("participants") or []))
+        sorted_clans = sorted(clans, key=_total_fame, reverse=True)
         for i, c in enumerate(sorted_clans):
             if c.get("tag") and normalize_clan_tag(c.get("tag")) == clan_tag:
                 war_rank = i + 1
