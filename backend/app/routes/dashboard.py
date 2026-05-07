@@ -1,5 +1,5 @@
 from concurrent.futures import ThreadPoolExecutor
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 from app.dependencies import get_current_db_user, get_db
@@ -9,6 +9,7 @@ from app.services.clash_royale import (
     fetch_user_clanwar_ranking,
     fetch_current_riverrace_for_tag,
     fetch_clan_members,
+    fetch_clan_by_tag,
 )
 
 router = APIRouter()
@@ -38,20 +39,31 @@ def get_dashboard(user: User = Depends(get_current_db_user), db: Session = Depen
         user_clan = f_clan.result()
         war_clan  = f_war.result()
 
-    if not user_clan:
-        raise HTTPException(status_code=404, detail="Clan not found in ranking")
+    if user_clan:
+        clan_name    = user_clan.get("name")
+        clan_score   = user_clan.get("clanScore")
+        member_count = user_clan.get("members")
+        leaderboard  = user_clan.get("rank")
+    else:
+        # Clan außerhalb Top-1000 → kein Ranking-Eintrag, Fallback aufs Clan-Endpoint.
+        # Trifft mit hoher Wahrscheinlichkeit den Cache aus Profile-/War-Aufrufen.
+        clan = fetch_clan_by_tag(user.clan_tag)
+        clan_name    = clan.get("name")
+        clan_score   = clan.get("clanScore")
+        member_count = clan.get("members")
+        leaderboard  = None
 
-    user.clan_ranking = user_clan.get("rank")
+    user.clan_ranking = leaderboard
     db.commit()
     db.refresh(user)
 
     return {
         "username": user.username,
-        "clan_name": user_clan.get("name"),
+        "clan_name": clan_name,
         "clan_tag": user.clan_tag,
-        "leaderboard_rank": user.clan_ranking,
-        "trophies": user_clan.get("clanScore"),
-        "members": user_clan.get("members"),
+        "leaderboard_rank": leaderboard,
+        "trophies": clan_score,
+        "members": member_count,
         "location": user.location,
         "war_rank": war_clan.get("rank") if war_clan else None,
     }
