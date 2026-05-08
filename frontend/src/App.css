@@ -725,8 +725,8 @@ input:focus {
    WAR-SEITE
    ════════════════════════════════════════════════════════════ */
 
-/* Oberste Reihe: Race-Standings (links, 1/3) + WarHeader (rechts, 2/3) */
-.war-top-row {
+/* Oberste Reihe der War-Seite: Race-Standings (links, 1/3) + WarHeader (rechts, 2/3) */
+.war-header-row {
   display: grid;
   grid-template-columns: 1fr 2fr;
   grid-template-areas: "ranking header";
@@ -734,11 +734,11 @@ input:focus {
   align-items: stretch;
 }
 
-.war-top-row > .war-race-clans { grid-area: ranking; }
-.war-top-row > .war-page-header { grid-area: header; }
+.war-header-row > .war-race-clans { grid-area: ranking; }
+.war-header-row > .war-page-header { grid-area: header; }
 
 @media (max-width: 720px) {
-  .war-top-row {
+  .war-header-row {
     grid-template-columns: 1fr;
     grid-template-areas:
       "ranking"

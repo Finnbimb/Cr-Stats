@@ -180,7 +180,7 @@ export default function War({ warData, participantsData, warLog, isLoading }) {
 
   return (
     <section className="page-stack">
-      <div className="war-top-row">
+      <div className="war-header-row">
         <RaceClansSidebar raceClans={participantsData?.race_clans} />
         <WarHeader data={participantsData ?? warData} />
       </div>
