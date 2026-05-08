@@ -21,6 +21,9 @@ GERMANY_LOCATION_NAME = "Germany"
 _api_cache: dict[str, tuple[float, dict]] = {}
 _cache_lock = Lock()
 
+# einmaliger Debug-Log nach Prozess-Start: welche Felder liefert currentriverrace?
+_riverrace_debug_logged = False
+
 
 def get_cr_api_headers():
     cr_api_token = get_cr_api_token()
@@ -165,6 +168,19 @@ def fetch_current_riverrace_for_tag(clan_tag: str) -> dict:
     )
     clan = data.get("clan") or {}
     clans = data.get("clans", [])
+
+    global _riverrace_debug_logged
+    if not _riverrace_debug_logged and clans:
+        sample_clan = clans[0]
+        sample_part = (sample_clan.get("participants") or [{}])[0]
+        print(f"[debug riverrace] top-level keys: {sorted(data.keys())}")
+        print(f"[debug riverrace] clan keys     : {sorted(sample_clan.keys())}")
+        print(f"[debug riverrace] clan numeric  : "
+              f"fame={sample_clan.get('fame')} "
+              f"periodPoints={sample_clan.get('periodPoints')} "
+              f"repairPoints={sample_clan.get('repairPoints')}")
+        print(f"[debug riverrace] participant keys: {sorted(sample_part.keys())}")
+        _riverrace_debug_logged = True
 
     participants = clan.get("participants", [])
     if not participants and clans:
