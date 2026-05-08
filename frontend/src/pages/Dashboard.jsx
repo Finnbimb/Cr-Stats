@@ -75,7 +75,7 @@ function Dashboard({ data, error, isLoading, avgTrophies, warData, warLog, membe
             <strong>{avgTrophies != null ? avgTrophies.toLocaleString() : '—'}</strong>
           </article>
 
-          <a href="#/war" className="panel stat-card stat-card--activity">
+          <a href="#/war" className="panel stat-card stat-card--activity stat-card--link">
             <span className="stat-label">Aktiv (24h)</span>
             <strong>
               {activity
