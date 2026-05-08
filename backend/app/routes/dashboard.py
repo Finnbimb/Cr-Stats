@@ -74,7 +74,8 @@ def get_war_participants(user: User = Depends(get_current_db_user)):
     if not user.clan_tag:
         return {"is_training": False, "section_index": 0, "war_rank": None,
                 "clan_count": 0, "decks_today": 0, "decks_today_max": 0,
-                "decks_total": 0, "decks_total_max": 0, "participants": []}
+                "decks_total": 0, "decks_total_max": 0, "participants": [],
+                "race_clans": []}
 
     race = fetch_current_riverrace_for_tag(user.clan_tag)
     is_training = race.get("period_type") == "training"
@@ -82,6 +83,7 @@ def get_war_participants(user: User = Depends(get_current_db_user)):
     war_rank = race.get("war_rank")
     clan_count = race.get("clan_count", 0)
     participants = race.get("participants", [])
+    race_clans = race.get("race_clans", [])
 
     current_tags = {m.get("tag") for m in fetch_clan_members(user.clan_tag)}
     days_elapsed = max(section_index + 1, 1)
@@ -110,6 +112,7 @@ def get_war_participants(user: User = Depends(get_current_db_user)):
         "decks_total": sum(p["decks_used"] for p in enriched),
         "decks_total_max": count * 4 * days_elapsed,
         "participants": enriched,
+        "race_clans": race_clans,
     }
 
 

@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react'
+import RaceClansSidebar from '../components/RaceClansSidebar.jsx'
 
 const SORT_OPTIONS = [
   { value: 'decks_used', label: 'Gesamt gespielt' },
@@ -179,7 +180,10 @@ export default function War({ warData, participantsData, warLog, isLoading }) {
 
   return (
     <section className="page-stack">
-      <WarHeader data={participantsData ?? warData} />
+      <div className="war-top-row">
+        <RaceClansSidebar raceClans={participantsData?.race_clans} />
+        <WarHeader data={participantsData ?? warData} />
+      </div>
       <WeekProgress warData={participantsData ?? warData} warLog={warLog} />
 
       <div className="panel">

@@ -725,6 +725,115 @@ input:focus {
    WAR-SEITE
    ════════════════════════════════════════════════════════════ */
 
+/* Oberste Reihe: Race-Standings (links, 1/3) + WarHeader (rechts, 2/3) */
+.war-top-row {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  grid-template-areas: "ranking header";
+  gap: 1rem;
+  align-items: stretch;
+}
+
+.war-top-row > .war-race-clans { grid-area: ranking; }
+.war-top-row > .war-page-header { grid-area: header; }
+
+@media (max-width: 720px) {
+  .war-top-row {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "ranking"
+      "header";
+  }
+}
+
+/* Race-Standings-Karte (linke Spalte der obersten Reihe) */
+.war-race-clans {
+  display: flex;
+  flex-direction: column;
+  padding: 1rem;
+  gap: 0.6rem;
+}
+
+.war-race-clans-title {
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.war-race-clans-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.war-race-clan {
+  display: grid;
+  grid-template-columns: 1.4rem 1fr auto;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.4rem 0.55rem;
+  border-radius: 0.45rem;
+  font-size: 0.85rem;
+  background: var(--bg-panel-soft, rgba(0, 0, 0, 0.025));
+  border: 1px solid transparent;
+}
+
+.war-race-clan--own {
+  background: color-mix(in srgb, var(--color-brand) 14%, transparent);
+  border-color: color-mix(in srgb, var(--color-brand) 35%, transparent);
+  font-weight: 600;
+}
+
+.war-race-clan-rank {
+  font-variant-numeric: tabular-nums;
+  color: var(--text-muted);
+  text-align: right;
+  font-size: 0.8rem;
+}
+
+.war-race-clan--own .war-race-clan-rank {
+  color: var(--color-brand);
+}
+
+.war-race-clan-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.war-race-clan-fame {
+  font-variant-numeric: tabular-nums;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+
+.war-race-clan--own .war-race-clan-fame {
+  color: var(--text-primary);
+}
+
+.war-race-gap {
+  margin: 0.2rem 0 0;
+  padding-top: 0.55rem;
+  border-top: 1px solid var(--border-weak);
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+.war-race-gap strong {
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+.war-race-gap--lead strong {
+  color: var(--color-accent-green);
+}
+
 .war-page-header {
   display: grid;
   gap: 1.25rem;

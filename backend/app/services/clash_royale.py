@@ -173,15 +173,24 @@ def fetch_current_riverrace_for_tag(clan_tag: str) -> dict:
             participants = own.get("participants", [])
 
     war_rank = None
+    race_clans = []
     if clans:
         # clan.fame ist außerhalb der Finalwoche oft Müll → echtes Total = Summe Spieler-Fame.
         def _total_fame(c):
             return sum((p or {}).get("fame", 0) for p in (c.get("participants") or []))
         sorted_clans = sorted(clans, key=_total_fame, reverse=True)
         for i, c in enumerate(sorted_clans):
-            if c.get("tag") and normalize_clan_tag(c.get("tag")) == clan_tag:
+            tag = c.get("tag")
+            is_own = bool(tag and normalize_clan_tag(tag) == clan_tag)
+            race_clans.append({
+                "tag": tag,
+                "name": c.get("name"),
+                "fame": _total_fame(c),
+                "rank": i + 1,
+                "is_own": is_own,
+            })
+            if is_own:
                 war_rank = i + 1
-                break
 
     return {
         "period_type": data.get("periodType"),
@@ -189,6 +198,7 @@ def fetch_current_riverrace_for_tag(clan_tag: str) -> dict:
         "clan_count": len(clans),
         "participants": participants,
         "war_rank": war_rank,
+        "race_clans": race_clans,
     }
 
 
