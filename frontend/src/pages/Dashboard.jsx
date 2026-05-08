@@ -75,14 +75,14 @@ function Dashboard({ data, error, isLoading, avgTrophies, warData, warLog, membe
             <strong>{avgTrophies != null ? avgTrophies.toLocaleString() : '—'}</strong>
           </article>
 
-          <article className="panel stat-card stat-card--activity">
+          <a href="#/war" className="panel stat-card stat-card--activity">
             <span className="stat-label">Aktiv (24h)</span>
             <strong>
               {activity
                 ? `${activity.active} / ${activity.total}`
                 : '—'}
             </strong>
-          </article>
+          </a>
 
         </div>
       </div>
