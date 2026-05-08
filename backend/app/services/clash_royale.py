@@ -173,13 +173,13 @@ def fetch_current_riverrace_for_tag(clan_tag: str) -> dict:
     if not _riverrace_debug_logged and clans:
         sample_clan = clans[0]
         sample_part = (sample_clan.get("participants") or [{}])[0]
-        print(f"[debug riverrace] top-level keys: {sorted(data.keys())}")
-        print(f"[debug riverrace] clan keys     : {sorted(sample_clan.keys())}")
+        print(f"[debug riverrace] top-level keys: {sorted(data.keys())}", flush=True)
+        print(f"[debug riverrace] clan keys     : {sorted(sample_clan.keys())}", flush=True)
         print(f"[debug riverrace] clan numeric  : "
               f"fame={sample_clan.get('fame')} "
               f"periodPoints={sample_clan.get('periodPoints')} "
-              f"repairPoints={sample_clan.get('repairPoints')}")
-        print(f"[debug riverrace] participant keys: {sorted(sample_part.keys())}")
+              f"repairPoints={sample_clan.get('repairPoints')}", flush=True)
+        print(f"[debug riverrace] participant keys: {sorted(sample_part.keys())}", flush=True)
         _riverrace_debug_logged = True
 
     participants = clan.get("participants", [])
