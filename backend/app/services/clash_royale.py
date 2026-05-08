@@ -171,15 +171,25 @@ def fetch_current_riverrace_for_tag(clan_tag: str) -> dict:
 
     global _riverrace_debug_logged
     if not _riverrace_debug_logged and clans:
-        sample_clan = clans[0]
-        sample_part = (sample_clan.get("participants") or [{}])[0]
-        print(f"[debug riverrace] top-level keys: {sorted(data.keys())}", flush=True)
-        print(f"[debug riverrace] clan keys     : {sorted(sample_clan.keys())}", flush=True)
-        print(f"[debug riverrace] clan numeric  : "
-              f"fame={sample_clan.get('fame')} "
-              f"periodPoints={sample_clan.get('periodPoints')} "
-              f"repairPoints={sample_clan.get('repairPoints')}", flush=True)
-        print(f"[debug riverrace] participant keys: {sorted(sample_part.keys())}", flush=True)
+        period_index = data.get("periodIndex")
+        period_type = data.get("periodType")
+        section_index = data.get("sectionIndex")
+        print(f"[debug riverrace] periodIndex={period_index} periodType={period_type} sectionIndex={section_index}", flush=True)
+
+        # Vergleich: clan.fame vs periodPoints vs Summe Spieler-Fame, für ALLE 5 Clans
+        print("[debug riverrace] per-clan: name | fame | periodPoints | sum(participant.fame)", flush=True)
+        for c in clans:
+            sum_part = sum((p or {}).get("fame", 0) for p in (c.get("participants") or []))
+            print(f"[debug riverrace]   {c.get('name'):<20} fame={c.get('fame')} periodPoints={c.get('periodPoints')} sum_part={sum_part}", flush=True)
+
+        # periodLogs anschauen: Struktur und Zahl der Einträge
+        period_logs = data.get("periodLogs", []) or []
+        print(f"[debug riverrace] periodLogs count={len(period_logs)}", flush=True)
+        if period_logs:
+            first_log = period_logs[0]
+            print(f"[debug riverrace] periodLogs[0] keys={sorted(first_log.keys()) if isinstance(first_log, dict) else type(first_log).__name__}", flush=True)
+            print(f"[debug riverrace] periodLogs[0] sample={first_log}", flush=True)
+
         _riverrace_debug_logged = True
 
     participants = clan.get("participants", [])
