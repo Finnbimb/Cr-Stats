@@ -79,6 +79,7 @@ def get_war_participants(user: User = Depends(get_current_db_user)):
 
     race = fetch_current_riverrace_for_tag(user.clan_tag)
     is_training = race.get("period_type") == "training"
+    period_index = race.get("period_index", 0)
     section_index = race.get("section_index", 0)
     war_rank = race.get("war_rank")
     clan_count = race.get("clan_count", 0)
@@ -86,7 +87,7 @@ def get_war_participants(user: User = Depends(get_current_db_user)):
     race_clans = race.get("race_clans", [])
 
     current_tags = {m.get("tag") for m in fetch_clan_members(user.clan_tag)}
-    days_elapsed = max(section_index + 1, 1)
+    days_elapsed = max(period_index + 1, 1)
 
     enriched = sorted([
         {
