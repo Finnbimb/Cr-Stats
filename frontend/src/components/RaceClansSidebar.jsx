@@ -4,9 +4,9 @@ function RaceClansSidebar({ raceClans }) {
 
  
 
-  for (const clan of raceClans ?? []) {
-    todayPonts = sum(clan.participants, p => p.points_earned_today ?? 0)
-  }
+  // for (const clan of raceClans ?? []) {
+  //   todayPonts = sum(clan.participants, p => p.points_earned_today ?? 0)
+  // }
 
   let gap = null
   if (own && own.rank > 1) {
@@ -33,15 +33,8 @@ function RaceClansSidebar({ raceClans }) {
           {raceClans.map(c => (
             <li key= {c.today }>
               <span className="war-race-clans-name">{c.name}</span>
-              <span className="war-race-clans-fame">{c.fame.toLocaleString()}</span>
-              {c.today !== 0 && (
-                <span className="war-race-clan-fame">                                                                                                                                                                        
-                  {(c.fame ?? 0).toLocaleString('de-DE')}
-                  {c.today > 0 && (                                                                                                                                                                                          
-                    <span className="war-race-clan-today"> +{c.today.toLocaleString('de-DE')}</span>
-                  )}                                                                                                                                                                                                         
-                </span>
-              )}
+              <span className="war-race-clans-fame">{c.today.toLocaleString()}</span>
+              
             </li>
           ))}
         </ol>

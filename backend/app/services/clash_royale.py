@@ -180,7 +180,7 @@ def fetch_current_riverrace_for_tag(clan_tag: str) -> dict:
         def _total_fame(c):
             return sum((p or {}).get("fame", 0) for p in (c.get("participants") or []))
         sorted_clans = sorted(clans, key=_total_fame, reverse=True)
-        # past_total = sum((log or {}).get("pointsEarned", {}) for log in periodLogs["items"])
+        sortiert = []
         for i, c in enumerate(sorted_clans):
             tag = c.get("tag")
             past_total = 0
@@ -188,6 +188,7 @@ def fetch_current_riverrace_for_tag(clan_tag: str) -> dict:
                 for entry in day.get("items", []):
                     if entry["clan"]["tag"] == tag:
                         past_total += entry.get("pointsEarned", 0)
+            
             is_own = bool(tag and normalize_clan_tag(tag) == clan_tag)
             race_clans.append({
                 "tag": tag,
@@ -199,6 +200,10 @@ def fetch_current_riverrace_for_tag(clan_tag: str) -> dict:
             })
             if is_own:
                 war_rank = i + 1
+                
+        sortiert = sorted(race_clans, key=lambda punkte: punkte["today"], reverse=True)
+        for i, e in enumerate(sortiert):
+            e["rank"] = i + 1
 
     return {
         "period_type": data.get("periodType"),
