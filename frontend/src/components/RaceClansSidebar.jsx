@@ -2,6 +2,12 @@ function RaceClansSidebar({ raceClans }) {
   const hasData = raceClans?.length > 0
   const own = hasData ? raceClans.find(c => c.is_own) : null
 
+ 
+
+  for (const clan of raceClans ?? []) {
+    todayPonts = sum(clan.participants, p => p.points_earned_today ?? 0)
+  }
+
   let gap = null
   if (own && own.rank > 1) {
     const above = raceClans.find(c => c.rank === own.rank - 1)
@@ -25,15 +31,17 @@ function RaceClansSidebar({ raceClans }) {
       ) : (
         <ol className="war-race-clans-list">
           {raceClans.map(c => (
-            <li
-              key={c.tag ?? c.rank}
-              className={`war-race-clan${c.is_own ? ' war-race-clan--own' : ''}`}
-            >
-              <span className="war-race-clan-rank">{c.rank}</span>
-              <span className="war-race-clan-name" title={c.name}>{c.name}</span>
-              <span className="war-race-clan-fame">
-                {(c.fame ?? 0).toLocaleString('de-DE')}
-              </span>
+            <li key= {c.today }>
+              <span className="war-race-clans-name">{c.name}</span>
+              <span className="war-race-clans-fame">{c.fame.toLocaleString()}</span>
+              {c.today !== 0 && (
+                <span className="war-race-clan-fame">                                                                                                                                                                        
+                  {(c.fame ?? 0).toLocaleString('de-DE')}
+                  {c.today > 0 && (                                                                                                                                                                                          
+                    <span className="war-race-clan-today"> +{c.today.toLocaleString('de-DE')}</span>
+                  )}                                                                                                                                                                                                         
+                </span>
+              )}
             </li>
           ))}
         </ol>

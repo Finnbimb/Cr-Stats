@@ -163,6 +163,7 @@ def fetch_current_riverrace_for_tag(clan_tag: str) -> dict:
         ttl=60,
         fallback_detail="Failed to load current river race",
     )
+    periodLogs = data.get("periodLogs", [])
     clan = data.get("clan") or {}
     clans = data.get("clans", [])
 
@@ -179,13 +180,20 @@ def fetch_current_riverrace_for_tag(clan_tag: str) -> dict:
         def _total_fame(c):
             return sum((p or {}).get("fame", 0) for p in (c.get("participants") or []))
         sorted_clans = sorted(clans, key=_total_fame, reverse=True)
+        # past_total = sum((log or {}).get("pointsEarned", {}) for log in periodLogs["items"])
         for i, c in enumerate(sorted_clans):
             tag = c.get("tag")
+            past_total = 0
+            for day in periodLogs:
+                for entry in day.get("items", []):
+                    if entry["clan"]["tag"] == tag:
+                        past_total += entry.get("pointsEarned", 0)
             is_own = bool(tag and normalize_clan_tag(tag) == clan_tag)
             race_clans.append({
                 "tag": tag,
                 "name": c.get("name"),
                 "fame": _total_fame(c),
+                "today" : _total_fame(c) - past_total,
                 "rank": i + 1,
                 "is_own": is_own,
             })
