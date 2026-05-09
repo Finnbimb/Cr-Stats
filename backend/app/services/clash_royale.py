@@ -211,7 +211,7 @@ def fetch_current_riverrace_for_tag(clan_tag: str) -> dict:
         "clan_count": len(clans),
         "participants": participants,
         "war_rank": war_rank,
-        "race_clans": race_clans,
+        "race_clans": sortiert,
         
     }
 
