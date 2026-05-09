@@ -195,7 +195,6 @@ def fetch_current_riverrace_for_tag(clan_tag: str) -> dict:
                 "name": c.get("name"),
                 "fame": _total_fame(c),
                 "today" : _total_fame(c) - past_total,
-                "rank": i + 1,
                 "is_own": is_own,
             })
             if is_own:

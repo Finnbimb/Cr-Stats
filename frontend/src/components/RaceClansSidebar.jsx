@@ -12,7 +12,7 @@ function RaceClansSidebar({ raceClans }) {
   if (own && own.rank > 1) {
     const above = raceClans.find(c => c.rank === own.rank - 1)
     if (above) {
-      gap = { rank: above.rank, diff: Math.max(0, above.fame - own.fame) }
+      gap = { rank: above.rank, diff: Math.max(0, above.today - own.today) }
     }
   }
 
@@ -32,9 +32,9 @@ function RaceClansSidebar({ raceClans }) {
         <ol className="war-race-clans-list">
           {raceClans.map(c => (
             <li key= {c.today }>
+              <span>{c.rank}.</span>
               <span className="war-race-clans-name">{c.name}</span>
               <span className="war-race-clans-fame">{c.today.toLocaleString()}</span>
-              
             </li>
           ))}
         </ol>

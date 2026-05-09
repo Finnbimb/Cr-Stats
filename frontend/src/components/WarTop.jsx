@@ -130,7 +130,7 @@ function TrainingView({ warData, warRank, warLog }) {
             <span className="war-rank-label">Platz</span>
             <strong className="war-rank-value">#{warRank}</strong>
             {clanCount > 0 && (
-              <span className="war-training-of">von {clanCount} Clans</span>
+              <span className="war-training-of">von {clanCount}</span>
             )}
           </div>
         )}

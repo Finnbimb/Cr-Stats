@@ -123,7 +123,7 @@ function WarHeader({ data }) {
             ? <><span className="war-rank-label">Platz</span><strong className="war-rank-value">#{warRank}</strong></>
             : <strong className="war-rank-value">—</strong>
           }
-          {clanCount > 0 && <span className="war-training-of">von {clanCount} Clans</span>}
+          {clanCount > 0 && <span className="war-training-of">von {clanCount}</span>}
         </div>
 
         <div className="war-page-badge-wrap">
