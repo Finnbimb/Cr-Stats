@@ -204,6 +204,11 @@ def fetch_current_riverrace_for_tag(clan_tag: str) -> dict:
         for i, e in enumerate(sortiert):
             e["rank"] = i + 1
 
+        # einmaliger Debug, um die echten Werte zu sehen
+        print(f"[debug today] periodLogs_count={len(periodLogs)}", flush=True)
+        for e in sortiert:
+            print(f"[debug today]   rank={e['rank']} name={e['name']:<22} fame={e['fame']} today={e['today']}", flush=True)
+
     return {
         "period_type": data.get("periodType"),
         "section_index": data.get("sectionIndex", 0),
