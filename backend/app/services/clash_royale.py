@@ -180,7 +180,6 @@ def fetch_current_riverrace_for_tag(clan_tag: str) -> dict:
         def _total_fame(c):
             return sum((p or {}).get("fame", 0) for p in (c.get("participants") or []))
         sorted_clans = sorted(clans, key=_total_fame, reverse=True)
-        sortiert = []
         for i, c in enumerate(sorted_clans):
             tag = c.get("tag")
             past_total = 0
@@ -188,26 +187,26 @@ def fetch_current_riverrace_for_tag(clan_tag: str) -> dict:
                 for entry in day.get("items", []):
                     if entry["clan"]["tag"] == tag:
                         past_total += entry.get("pointsEarned", 0)
-            
+
+            total = _total_fame(c)
+            # Wenn past_total > total: periodLogs stammen aus alter Race-Woche
+            # (typisch am 1. Tag neuer Race) → ignorieren, alles ist "heute".
+            today = total if past_total > total else total - past_total
+
             is_own = bool(tag and normalize_clan_tag(tag) == clan_tag)
             race_clans.append({
                 "tag": tag,
                 "name": c.get("name"),
-                "fame": _total_fame(c),
-                "today" : _total_fame(c) - past_total,
+                "fame": total,
+                "today": today,
                 "is_own": is_own,
             })
             if is_own:
                 war_rank = i + 1
-                
+
         sortiert = sorted(race_clans, key=lambda punkte: punkte["today"], reverse=True)
         for i, e in enumerate(sortiert):
             e["rank"] = i + 1
-
-        # einmaliger Debug, um die echten Werte zu sehen
-        print(f"[debug today] periodLogs_count={len(periodLogs)}", flush=True)
-        for e in sortiert:
-            print(f"[debug today]   rank={e['rank']} name={e['name']:<22} fame={e['fame']} today={e['today']}", flush=True)
 
     return {
         "period_type": data.get("periodType"),
