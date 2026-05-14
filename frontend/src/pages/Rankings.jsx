@@ -33,6 +33,18 @@ function rankDomain([min, max]) {
   return [Math.max(1, min - padding), max + padding]
 }
 
+function scoreDomain(values) {
+  if (!values?.length) return ['auto', 'auto']
+  const min = Math.min(...values)
+  const max = Math.max(...values)
+  if (min === max) {
+    const pad = Math.max(200, Math.round(min * 0.05))
+    return [Math.max(0, min - pad), max + pad]
+  }
+  const padding = Math.max(200, Math.round((max - min) * 0.3))
+  return [Math.max(0, min - padding), max + padding]
+}
+
 function ChartShell({ title, subtitle, children, footer }) {
   return (
     <article className="panel ranking-chart-card">
@@ -98,6 +110,9 @@ function TrophyChart({ history, location }) {
   const ranks = ranked.map(s => s.trophy_rank)
   const rDomain = rankDomain([Math.min(...ranks), Math.max(...ranks)])
 
+  const scores = snapshots.map(s => s.clan_score).filter(v => v != null && Number.isFinite(v))
+  const sDomain = scoreDomain(scores)
+
   return (
     <ChartShell
       title="Trophäen-Bestenliste"
@@ -114,6 +129,7 @@ function TrophyChart({ history, location }) {
             stroke={COLOR_SCORE}
             fontSize={12}
             tickLine={false}
+            domain={sDomain}
             tickFormatter={v => v?.toLocaleString?.('de-DE') ?? v}
           />
           <YAxis
@@ -180,11 +196,11 @@ function WarChart({ wars, location }) {
   }))
 
   const lbRanks = wars.map(w => w.leaderboard_rank).filter(r => r != null)
-  const rDomain = lbRanks.length
+  const lbDomain = lbRanks.length
     ? rankDomain([Math.min(...lbRanks), Math.max(...lbRanks)])
     : [1, 50]
 
-  const subtitle = location ? `Verlauf in ${location}` : 'Verlauf der Kriegs-Punkte'
+  const subtitle = location ? `Verlauf in ${location}` : 'Race-Platz pro Woche'
   const noLeaderboard = lbRanks.length === 0
 
   return (
@@ -202,21 +218,25 @@ function WarChart({ wars, location }) {
           <CartesianGrid stroke="var(--border-weak)" vertical={false} />
           <XAxis dataKey="label" stroke="var(--text-muted)" fontSize={12} tickLine={false} />
           <YAxis
-            yAxisId="fame"
+            yAxisId="race"
             orientation="left"
             stroke={COLOR_FAME}
             fontSize={12}
             tickLine={false}
-            tickFormatter={v => v?.toLocaleString?.('de-DE') ?? v}
+            reversed
+            domain={[1, 5]}
+            ticks={[1, 2, 3, 4, 5]}
+            tickFormatter={v => `#${v}`}
+            allowDecimals={false}
           />
           <YAxis
-            yAxisId="rank"
+            yAxisId="lb"
             orientation="right"
             stroke={COLOR_RANK}
             fontSize={12}
             tickLine={false}
             reversed
-            domain={rDomain}
+            domain={lbDomain}
             tickFormatter={v => `#${v}`}
             allowDecimals={false}
           />
@@ -224,11 +244,13 @@ function WarChart({ wars, location }) {
             contentStyle={{ borderRadius: 8, border: '1px solid var(--border-medium)' }}
             formatter={(value, name, item) => {
               if (name === 'Bestenlisten-Rang') return [`#${value}`, name]
-              if (name === 'Fame') {
-                const raceRank = item?.payload?.raceRank
-                const formatted = Number(value).toLocaleString('de-DE')
+              if (name === 'Race-Platz') {
+                const fame = item?.payload?.fame
+                const formattedRank = `#${value}`
                 return [
-                  raceRank != null ? `${formatted}  (Platz im Krieg: #${raceRank})` : formatted,
+                  fame != null
+                    ? `${formattedRank}  (Fame: ${Number(fame).toLocaleString('de-DE')})`
+                    : formattedRank,
                   name,
                 ]
               }
@@ -237,17 +259,17 @@ function WarChart({ wars, location }) {
           />
           <Legend iconType="circle" wrapperStyle={{ fontSize: '0.78rem' }} />
           <Line
-            yAxisId="fame"
+            yAxisId="race"
             type="monotone"
-            dataKey="fame"
-            name="Fame"
+            dataKey="raceRank"
+            name="Race-Platz"
             stroke={COLOR_FAME}
             strokeWidth={2.5}
             dot={{ r: 3 }}
             connectNulls
           />
           <Line
-            yAxisId="rank"
+            yAxisId="lb"
             type="monotone"
             dataKey="leaderboardRank"
             name="Bestenlisten-Rang"
