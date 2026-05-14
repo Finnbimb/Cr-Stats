@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
+from passlib.context import CryptContext
 
 from app.dependencies import get_current_user, get_db
 from app.models import User
@@ -8,6 +9,7 @@ from app.schemas.auth import RegisterRequest
 from app.core.security import create_access_token
 
 router = APIRouter()
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
 @router.post("/register")
@@ -33,7 +35,7 @@ def register_user(data: RegisterRequest, db: Session = Depends(get_db)):
     new_user = User(
         username=data.username,
         email=data.email,
-        password=data.password
+        password=pwd_context.hash(data.password)
     )
 
     db.add(new_user)
@@ -54,7 +56,7 @@ def login_user(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = D
     if not user:
         raise HTTPException(status_code=401, detail="Invalid username or password")
 
-    if form_data.password != user.password:
+    if not pwd_context.verify(form_data.password, user.password):
         raise HTTPException(status_code=401, detail="Invalid username or password")
 
     token = create_access_token({"sub": user.username})
