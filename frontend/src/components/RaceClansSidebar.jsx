@@ -31,10 +31,15 @@ function RaceClansSidebar({ raceClans }) {
       ) : (
         <ol className="war-race-clans-list">
           {raceClans.map(c => (
-            <li key= {c.today }>
-              <span>{c.rank}.</span>
-              <span className="war-race-clans-name">{c.name}</span>
-              <span className="war-race-clans-fame">{c.today.toLocaleString()}</span>
+            <li
+              key={c.tag ?? c.rank}
+              className={`war-race-clan${c.is_own ? ' war-race-clan--own' : ''}`}
+            >
+              <span className="war-race-clan-rank">{c.rank}</span>
+              <span className="war-race-clan-name" title={c.name}>{c.name}</span>
+              <span className="war-race-clan-fame">
+                {(c.today ?? 0).toLocaleString('de-DE')}
+              </span>
             </li>
           ))}
         </ol>
