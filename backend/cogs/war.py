@@ -81,19 +81,18 @@ class WarCog(commands.Cog, name="War"):
         if not members:
             return "Es gibt noch keine gespeicherten Mitgliederdaten in der Datenbank."
 
-        played_count = sum(1 for m in members if (m.games_played_today or 0) > 0)
         missing = [m for m in members if (m.games_played_today or 0) == 0]
         total_games = sum(m.games_played_today or 0 for m in members)
+        max_games = len(members) * WAR_GAMES_PER_DAY
 
         lines = [
             f"Clan: {clan_session.clan_tag}",
             self._war_day_label(clan_session),
             f"Phase: {clan_session.period_type}",
-            f"Aktive Mitglieder: {played_count}/{len(members)}",
-            f"Gespielte Spiele heute: {total_games}",
+            f"Decks gespielt: {total_games} / {max_games}",
         ]
         if missing:
-            lines += ["", "Noch ohne Spiele:"]
+            lines += ["", f"Bisher ohne Decks: {len(missing)} von {len(members)} Spielern"]
             lines += [f"- {m.name} ({m.member_tag})" for m in missing[:10]]
             if len(missing) > 10:
                 lines.append(f"... und {len(missing) - 10} weitere")
