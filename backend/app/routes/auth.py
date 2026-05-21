@@ -1,7 +1,7 @@
+import bcrypt
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
-from passlib.context import CryptContext
 
 from app.dependencies import get_current_user, get_db
 from app.models import User
@@ -9,7 +9,18 @@ from app.schemas.auth import RegisterRequest
 from app.core.security import create_access_token
 
 router = APIRouter()
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+
+def hash_password(password: str) -> str:
+    return bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
+
+
+def verify_password(password: str, hashed: str) -> bool:
+    try:
+        return bcrypt.checkpw(password.encode("utf-8"), hashed.encode("utf-8"))
+    except ValueError:
+        # gespeicherter Wert ist kein gültiger bcrypt-Hash (z. B. alter Klartext)
+        return False
 
 
 @router.post("/register")
@@ -35,7 +46,7 @@ def register_user(data: RegisterRequest, db: Session = Depends(get_db)):
     new_user = User(
         username=data.username,
         email=data.email,
-        password=pwd_context.hash(data.password)
+        password=hash_password(data.password)
     )
 
     db.add(new_user)
@@ -56,7 +67,7 @@ def login_user(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = D
     if not user:
         raise HTTPException(status_code=401, detail="Invalid username or password")
 
-    if not pwd_context.verify(form_data.password, user.password):
+    if not verify_password(form_data.password, user.password):
         raise HTTPException(status_code=401, detail="Invalid username or password")
 
     token = create_access_token({"sub": user.username})

@@ -27,4 +27,4 @@ uvloop==0.22.1
 watchfiles==1.1.1
 websockets==16.0
 requests==2.32.3
-passlib[bcrypt]==1.7.4
+bcrypt>=4.1.0
