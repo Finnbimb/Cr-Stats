@@ -206,8 +206,6 @@ def fetch_current_riverrace_for_tag(clan_tag: str) -> dict:
                 "today": today,
                 "is_own": is_own,
             })
-                
-            print(f"[debug] Found own clan in ranking: rank={war_rank}, i = {i}, fame={total}, today={today}", flush=True)
 
         race_clans.sort(key=lambda e: e["today"], reverse=True)
         for i, e in enumerate(race_clans):
