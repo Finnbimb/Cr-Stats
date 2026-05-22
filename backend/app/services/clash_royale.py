@@ -189,6 +189,8 @@ def fetch_current_riverrace_for_tag(clan_tag: str) -> dict:
                         past_total += entry.get("pointsEarned", 0)
 
             total = _total_fame(c)
+            print(f"[debug] {c.get('name'):<22} total={total} past={past_total} today={total - past_total}", flush=True)                                                                                             
+                                                                                    
             # Wenn past_total > total: periodLogs stammen aus alter Race-Woche
             # (typisch am 1. Tag neuer Race) → ignorieren, alles ist "heute".
             today = total if past_total > total else total - past_total
