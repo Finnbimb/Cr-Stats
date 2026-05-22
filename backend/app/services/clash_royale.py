@@ -180,10 +180,14 @@ def fetch_current_riverrace_for_tag(clan_tag: str) -> dict:
         def _total_fame(c):
             return sum((p or {}).get("fame", 0) for p in (c.get("participants") or []))
         sorted_clans = sorted(clans, key=_total_fame, reverse=True)
+        current_period_index = data.get("periodIndex", 0)
+        current_race_start= (current_period_index // 7) * 7
         for i, c in enumerate(sorted_clans):
             tag = c.get("tag")
             past_total = 0
             for day in periodLogs:
+                if day.get("periodIndex", 0) < current_race_start:
+                    continue
                 for entry in day.get("items", []):
                     if entry["clan"]["tag"] == tag:
                         past_total += entry.get("pointsEarned", 0)
