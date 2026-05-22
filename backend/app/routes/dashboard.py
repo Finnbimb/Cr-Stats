@@ -147,7 +147,7 @@ def get_war_performers(user: User = Depends(get_current_db_user)):
             p.get("name") for p in participants
             if p.get("decksUsedToday", 0) == 0 and p.get("tag") in current_tags
         ]
-
+    print(f"[debug] count= {count}, days_elapsed={days_elapsed}, decks_today={decks_today}, decks_total={decks_total}, missing_today={missing_today}", flush=True)
     return {
         "is_training": is_training,
         "section_index": section_index,
