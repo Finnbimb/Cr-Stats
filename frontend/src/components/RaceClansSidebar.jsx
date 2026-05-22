@@ -20,7 +20,6 @@ function RaceClansSidebar({ raceClans }) {
   if (own && own.rank === 1 && raceClans.length > 1) {
     const second = raceClans.find(c => c.rank === 2)
     if (second) lead = Math.max(0, own.today - second.today)
-    console.log(`[debug] "lead": ${lead}, own.fame: ${own.today}, second.fame: ${second.today}`)
   }
 
   return (
