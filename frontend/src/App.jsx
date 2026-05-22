@@ -137,12 +137,14 @@ function App() {
     try {
       await registerUser(username, email, password)
       const data = await loginUser(username, password)
-      localStorage.setItem('token', data.access_token)
-      setToken(data.access_token)
+      // Clan-Tag VOR dem Token-Setzen schreiben, sonst lädt Dashboard
+      // noch ohne clan_tag (Race zwischen useEffect-Trigger und Backend-Write).
       if (clanTag.trim()) {
         const normalized = clanTag.trim().toUpperCase()
         await updateClanTag(data.access_token, normalized.startsWith('#') ? normalized : `#${normalized}`)
       }
+      localStorage.setItem('token', data.access_token)
+      setToken(data.access_token)
       navigateTo('dashboard')
     } catch (err) {
       setAuthError(err.message)
