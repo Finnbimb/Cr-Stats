@@ -79,7 +79,6 @@ def get_war_participants(user: User = Depends(get_current_db_user)):
 
     race = fetch_current_riverrace_for_tag(user.clan_tag)
     is_training = race.get("period_type") == "training"
-    period_index = race.get("period_index", 0)
     section_index = race.get("section_index", 0)
     war_rank = race.get("war_rank")
     clan_count = race.get("clan_count", 0)
@@ -87,7 +86,7 @@ def get_war_participants(user: User = Depends(get_current_db_user)):
     race_clans = race.get("race_clans", [])
 
     current_tags = {m.get("tag") for m in fetch_clan_members(user.clan_tag)}
-    days_elapsed = max(period_index + 1, 1)
+    days_elapsed = max(race.get("war_days_elapsed", 0), 1)
 
     enriched = sorted([
         {
@@ -137,7 +136,7 @@ def get_war_performers(user: User = Depends(get_current_db_user)):
     count = len(participants)
     decks_today = sum(p.get("decksUsedToday", 0) for p in participants)
     decks_total = sum(p.get("decksUsed", 0) for p in participants)
-    days_elapsed = max(section_index + 1, 1)
+    days_elapsed = max(race.get("war_days_elapsed", 0), 1)
     if is_training:
         missing_today = []
     else:
@@ -147,7 +146,7 @@ def get_war_performers(user: User = Depends(get_current_db_user)):
             p.get("name") for p in participants
             if p.get("decksUsedToday", 0) == 0 and p.get("tag") in current_tags
         ]
-    print(f"[debug] count= {count}, days_elapsed={days_elapsed}, decks_today={decks_today}, decks_total={decks_total}, missing_today={missing_today}", flush=True)
+    print(f"[debug] count= {count}, days_elapsed={days_elapsed}, decks_today={decks_today}, decks_total={decks_total}", flush=True)
     return {
         "is_training": is_training,
         "section_index": section_index,

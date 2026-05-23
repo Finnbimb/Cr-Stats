@@ -173,19 +173,29 @@ def fetch_current_riverrace_for_tag(clan_tag: str) -> dict:
         if own:
             participants = own.get("participants", [])
 
+    # Race-Phase ableiten — eine Race-Woche = 3 Training + 4 War = 7 Periods.
+    period_index = data.get("periodIndex", 0)
+    period_type = data.get("periodType")
+    race_start = (period_index // 7) * 7
+
+    if period_type == "warDay":
+        # War-Tage starten bei race_start + 3 (nach 3 Training-Tagen).
+        # +1 weil der heutige Kriegstag mitzählen soll.
+        war_days_elapsed = period_index - race_start - 3 + 1
+    else:
+        war_days_elapsed = 0
+
     war_rank = None
     race_clans = []
     if clans:
         # clan.fame ist außerhalb der Finalwoche oft Müll → echtes Total = Summe Spieler-Fame.
         def _total_fame(c):
             return sum((p or {}).get("fame", 0) for p in (c.get("participants") or []))
-        current_period_index = data.get("periodIndex", 0)
-        current_race_start= (current_period_index // 7) * 7
         for c in clans:
             tag = c.get("tag")
             past_total = 0
             for day in periodLogs:
-                if day.get("periodIndex", 0) < current_race_start:
+                if day.get("periodIndex", 0) < race_start:
                     continue
                 for entry in day.get("items", []):
                     if entry["clan"]["tag"] == tag:
@@ -214,13 +224,14 @@ def fetch_current_riverrace_for_tag(clan_tag: str) -> dict:
               war_rank = i + 1
 
     return {
-        "period_type": data.get("periodType"),
+        "period_type": period_type,
+        "period_index": period_index,
         "section_index": data.get("sectionIndex", 0),
+        "war_days_elapsed": war_days_elapsed,
         "clan_count": len(clans),
         "participants": participants,
         "war_rank": war_rank,
         "race_clans": race_clans,
-        
     }
 
 
