@@ -9,9 +9,11 @@ import {
   ResponsiveContainer,
 } from 'recharts'
 
-const COLOR_SCORE = 'var(--color-brand)'
-const COLOR_RANK = '#f59e0b'
-const COLOR_FAME = 'var(--color-accent-green)'
+const COLOR_SCORE = '#e8a020'
+const COLOR_RANK = '#c0c0c8'
+const COLOR_FAME = '#27ae60'
+const COLOR_GRID = '#1e1e24'
+const COLOR_AXIS_TEXT = '#6b6b7a'
 
 function formatDateShort(isoDate) {
   if (!isoDate) return ''
@@ -121,14 +123,15 @@ function TrophyChart({ history, location }) {
     >
       <ResponsiveContainer width="100%" height={280}>
         <ComposedChart data={data} margin={{ top: 10, right: 12, bottom: 4, left: 0 }}>
-          <CartesianGrid stroke="var(--border-weak)" vertical={false} />
-          <XAxis dataKey="label" stroke="var(--text-muted)" fontSize={12} tickLine={false} />
+          <CartesianGrid stroke={COLOR_GRID} vertical={false} />
+          <XAxis dataKey="label" stroke={COLOR_AXIS_TEXT} fontSize={11} tickLine={false} axisLine={{ stroke: COLOR_GRID }} />
           <YAxis
             yAxisId="score"
             orientation="left"
             stroke={COLOR_SCORE}
-            fontSize={12}
+            fontSize={11}
             tickLine={false}
+            axisLine={{ stroke: COLOR_GRID }}
             domain={sDomain}
             tickFormatter={v => v?.toLocaleString?.('de-DE') ?? v}
           />
@@ -136,15 +139,18 @@ function TrophyChart({ history, location }) {
             yAxisId="rank"
             orientation="right"
             stroke={COLOR_RANK}
-            fontSize={12}
+            fontSize={11}
             tickLine={false}
+            axisLine={{ stroke: COLOR_GRID }}
             reversed
             domain={rDomain}
             tickFormatter={v => `#${v}`}
             allowDecimals={false}
           />
           <Tooltip
-            contentStyle={{ borderRadius: 8, border: '1px solid var(--border-medium)' }}
+            cursor={{ stroke: COLOR_GRID, strokeWidth: 1 }}
+            contentStyle={{ borderRadius: 0, border: '1px solid #2a2a32', background: '#141418', color: '#f0f0f0' }}
+            labelStyle={{ color: '#6b6b7a', textTransform: 'uppercase', letterSpacing: '0.08em', fontSize: '0.75rem' }}
             formatter={(value, name) => {
               if (name === 'Rang') return [`#${value}`, name]
               if (name === 'Clan-Punkte') return [Number(value).toLocaleString('de-DE'), name]
@@ -215,14 +221,15 @@ function WarChart({ wars, location }) {
     >
       <ResponsiveContainer width="100%" height={280}>
         <ComposedChart data={data} margin={{ top: 10, right: 12, bottom: 4, left: 0 }}>
-          <CartesianGrid stroke="var(--border-weak)" vertical={false} />
-          <XAxis dataKey="label" stroke="var(--text-muted)" fontSize={12} tickLine={false} />
+          <CartesianGrid stroke={COLOR_GRID} vertical={false} />
+          <XAxis dataKey="label" stroke={COLOR_AXIS_TEXT} fontSize={11} tickLine={false} axisLine={{ stroke: COLOR_GRID }} />
           <YAxis
             yAxisId="race"
             orientation="left"
             stroke={COLOR_FAME}
-            fontSize={12}
+            fontSize={11}
             tickLine={false}
+            axisLine={{ stroke: COLOR_GRID }}
             reversed
             domain={[1, 5]}
             ticks={[1, 2, 3, 4, 5]}
@@ -233,15 +240,18 @@ function WarChart({ wars, location }) {
             yAxisId="lb"
             orientation="right"
             stroke={COLOR_RANK}
-            fontSize={12}
+            fontSize={11}
             tickLine={false}
+            axisLine={{ stroke: COLOR_GRID }}
             reversed
             domain={lbDomain}
             tickFormatter={v => `#${v}`}
             allowDecimals={false}
           />
           <Tooltip
-            contentStyle={{ borderRadius: 8, border: '1px solid var(--border-medium)' }}
+            cursor={{ stroke: COLOR_GRID, strokeWidth: 1 }}
+            contentStyle={{ borderRadius: 0, border: '1px solid #2a2a32', background: '#141418', color: '#f0f0f0' }}
+            labelStyle={{ color: '#6b6b7a', textTransform: 'uppercase', letterSpacing: '0.08em', fontSize: '0.75rem' }}
             formatter={(value, name, item) => {
               if (name === 'Bestenlisten-Rang') return [`#${value}`, name]
               if (name === 'Race-Platz') {

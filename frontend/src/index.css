@@ -1,83 +1,93 @@
 /* ════════════════════════════════════════════════════════════
-   DESIGN-VARIABLEN
-   Alle Farben, Abstände und Radien zentral hier ändern.
+   DESIGN-VARIABLEN (Dark, data-forward, gaming)
+   Siehe DESIGN.md – Dark Theme, scharfe Kanten, dichte Daten.
    ════════════════════════════════════════════════════════════ */
 
+@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap');
+
 :root {
-  /* ── Markenfarbe (Royale-Blau mit rotem Akzent) ── */
-  --color-brand:          #2f6fed;   /* Buttons, aktive Links, Highlights */
-  --color-brand-hover:    #245bd1;   /* Hover-Zustand der Markenfarbe */
-  --color-brand-text:     #ffffff;   /* Text auf blauem Hintergrund */
-  --color-brand-bg:       rgba(47, 111, 237, 0.10);  /* dezenter blauer Hintergrund */
-  --color-brand-bg-hover: rgba(47, 111, 237, 0.16);
-  --color-brand-border:   rgba(47, 111, 237, 0.42);  /* Fokus-Rahmen bei Inputs */
-  --color-accent-red:     #e14f62;
-  --color-accent-green:   #1fa672;
-  --color-accent-cyan:    #0891b2;
-  --color-royal-gold:     #eab43d;
+  /* ── Markenfarbe (Clash Royale Gold) ── */
+  --color-brand:          #e8a020;
+  --color-brand-hover:    #f0b13a;
+  --color-brand-text:     #0d0d0f;
+  --color-brand-bg:       rgba(232, 160, 32, 0.10);
+  --color-brand-bg-hover: rgba(232, 160, 32, 0.18);
+  --color-brand-border:   rgba(232, 160, 32, 0.55);
 
-  /* ── Fehler / Erfolg ── */
-  --color-error:   #dc2626;
-  --color-success: #0f9f6e;
+  --color-accent-red:     #c0392b;
+  --color-accent-green:   #27ae60;
+  --color-accent-cyan:    #4ea3b8;
+  --color-royal-gold:     #e8a020;
 
-  /* ── Seitenhintergrund ── */
-  --bg-page: #f5f8fc;
+  --color-error:   #c0392b;
+  --color-success: #27ae60;
 
-  /* ── Panels und Karten ── */
-  --bg-panel:  rgba(255, 255, 255, 0.9);
-  --bg-panel-soft: #f0f6fb;
-  --bg-input:  #fbfdff;
-  --bg-hover:  rgba(47, 111, 237, 0.07);
-  --bg-subtle: #edf5fb;
-
-  /* ── Auth-Seite (Login / Registrieren) ── */
-  --bg-auth-card: rgba(255, 255, 255, 0.94);
-
-  /* ── Sidebar ── */
-  --bg-sidebar: rgba(255, 255, 255, 0.96);
+  /* ── Hintergründe ── */
+  --bg-page:        #0d0d0f;
+  --bg-panel:       #141418;
+  --bg-panel-soft:  #0d0d0f;
+  --bg-input:       #0d0d0f;
+  --bg-hover:       #1e1e24;
+  --bg-subtle:      #1e1e24;
+  --bg-auth-card:   #141418;
+  --bg-sidebar:     #141418;
 
   /* ── Rahmen ── */
-  --border-weak:   rgba(20, 37, 63, 0.07);
-  --border-subtle: rgba(20, 37, 63, 0.09);
-  --border-soft:   rgba(20, 37, 63, 0.13);
-  --border-medium: rgba(20, 37, 63, 0.17);
+  --border-weak:   #1e1e24;
+  --border-subtle: #1e1e24;
+  --border-soft:   #2a2a32;
+  --border-medium: #2a2a32;
 
   /* ── Text ── */
-  --text-primary:  #142233;   /* Überschriften, Hauptinhalt */
-  --text-secondary: #42566f;  /* Labels, weniger wichtiger Text */
-  --text-muted:    #66778d;   /* Hinweise, Platzhalter-Text */
-  --text-dimmed:   #9aaabc;   /* sehr dezenter Text, Trennlinien */
+  --text-primary:   #f0f0f0;
+  --text-secondary: #a0a0ad;
+  --text-muted:     #6b6b7a;
+  --text-dimmed:    #45454f;
 
-  /* ── Schatten ── */
-  --shadow-soft: 0 16px 36px rgba(28, 50, 82, 0.08);
-  --shadow-lift: 0 18px 40px rgba(28, 50, 82, 0.12);
+  /* ── Schatten (keine — wir nutzen Borders) ── */
+  --shadow-soft: none;
+  --shadow-lift: none;
 
-  /* ── Eckenradien ── */
-  --radius-sm: 8px;
-  --radius-md: 10px;
-  --radius-lg: 12px;
-  --radius-xl: 16px;
-  --radius-2xl: 20px;
+  /* ── Eckenradien (max 4px laut DESIGN.md) ── */
+  --radius-sm: 0;
+  --radius-md: 2px;
+  --radius-lg: 2px;
+  --radius-xl: 4px;
+  --radius-2xl: 4px;
+
+  /* ── Fonts ── */
+  --font-display: 'Rajdhani', sans-serif;
+  --font-mono:    'IBM Plex Mono', ui-monospace, monospace;
+  --font-body:    'Rajdhani', sans-serif;
 }
 
 
 /* ════════════════════════════════════════════════════════════
    BASIS-RESET
-   Schrift, Box-Modell, globale HTML-Elemente.
    ════════════════════════════════════════════════════════════ */
 
 :root {
-  font-family: system-ui, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
+  font-family: var(--font-body);
+  line-height: 1.4;
+  font-weight: 500;
   color: var(--text-primary);
+  letter-spacing: 0.01em;
+  font-feature-settings: 'tnum';
 }
 
 * {
   box-sizing: border-box;
 }
 
-h1, h2, p {
+h1, h2, h3, h4 {
+  margin-top: 0;
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  color: var(--text-primary);
+}
+
+p {
   margin-top: 0;
 }
 
@@ -88,22 +98,32 @@ button, input {
 
 /* ════════════════════════════════════════════════════════════
    SEITEN-HINTERGRUND
-   Hintergrundfarbe und dekoratives Punkt-Raster.
    ════════════════════════════════════════════════════════════ */
 
 body {
   margin: 0;
   min-height: 100vh;
   background-color: var(--bg-page);
-  background-image:
-    linear-gradient(120deg, rgba(47, 111, 237, 0.08), transparent 34%),
-    linear-gradient(300deg, rgba(31, 166, 114, 0.08), transparent 30%),
-    linear-gradient(rgba(47, 111, 237, 0.04) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(47, 111, 237, 0.04) 1px, transparent 1px);
-  background-size: 100% 100%, 100% 100%, 42px 42px, 42px 42px;
-  background-attachment: fixed;
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 #root {
   min-height: 100vh;
 }
+
+::selection {
+  background: var(--color-brand);
+  color: var(--color-brand-text);
+}
+
+/* Scrollbars */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-medium) transparent;
+}
+*::-webkit-scrollbar { width: 8px; height: 8px; }
+*::-webkit-scrollbar-track { background: transparent; }
+*::-webkit-scrollbar-thumb { background: var(--border-medium); border-radius: 0; }
+*::-webkit-scrollbar-thumb:hover { background: var(--text-dimmed); }
