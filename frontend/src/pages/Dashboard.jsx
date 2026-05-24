@@ -1,4 +1,5 @@
 import WarTop from '../components/WarTop.jsx'
+import Critical from '../components/Critical.jsx'
 
 function parseLastSeen(ls) {
   if (!ls) return null

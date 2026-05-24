@@ -29,3 +29,5 @@ function Critical({ membersData, critical }) {
         )
     }
 }
+
+export default Critical
