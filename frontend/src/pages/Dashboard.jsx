@@ -21,15 +21,18 @@ function calcActiveMembers(members) {
 
 function calcCriticalMembers(membersdata) {
     if (!membersdata?.length) return null
-    const cutoff = Date.now() - 24 * 60 * 60 * 1000 * 2 // 48h
+    const cutoff = 48 * 60 * 60 * 1000  // 48h
     const critical = membersdata.filter(m => {
+
         const lastSeen = parseLastSeen(m.last_seen)
+        if (!lastSeen) 
+          return false
+
         if (Date.now() - lastSeen.getTime() < cutoff) 
           return false
-        else {
-          m.isCritical = true
-          return true
-        }
+
+        m.isCritical = true
+        return true
     })
     return critical
 }

@@ -7,9 +7,9 @@ ENV_FILE_PATH = Path(__file__).resolve().parent.parent.parent / ".env"
 
 load_dotenv(ENV_FILE_PATH)
 
-SECRET_KEY = "mysecretkey"
+SECRET_KEY = os.getenv("SECRET_KEY", "dev-only-fallback")
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
+ACCESS_TOKEN_EXPIRE_MINUTES = 10080  # 7 days
 CORS_ORIGINS = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",

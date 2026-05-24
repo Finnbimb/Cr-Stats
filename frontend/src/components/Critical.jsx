@@ -1,3 +1,18 @@
+function parseLastSeen(ls) {
+  if (!ls) return null
+  const m = ls.match(/^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})/)
+  if (!m) return null
+  return new Date(`${m[1]}-${m[2]}-${m[3]}T${m[4]}:${m[5]}:${m[6]}.000Z`)
+}
+
+function formatLastSeen(ls) {
+  const date = parseLastSeen(ls)
+  if (!date) return '—'
+  const formatted = date.toLocaleString('de-DE', { dateStyle: 'short', timeStyle: 'short' })
+  const diffD = Math.floor((Date.now() - date.getTime()) / (1000 * 60 * 60 * 24))
+  return `${formatted} (vor ${diffD} ${diffD === 1 ? 'Tag' : 'Tagen'})`
+}
+
 function Critical({ membersData, critical }) {
     if (!membersData) {
     return (
@@ -12,19 +27,19 @@ function Critical({ membersData, critical }) {
       )
     }
     
-    if (critical === null){
-        return (
-            <section className="panel page-stack">
-                <h2>Kritische Mitglieder</h2>
-                <p>Keine kritischen Mitglieder gefunden.</p>
-            </section>
-        )
+    if (!critical || critical.length === 0) {
+    return <section>… keine kritischen Mitglieder.</section>
     }
     else {
         return (
             <section className="panel page-stack">
                 <h2>Kritische Mitglieder</h2>
-                <p>Es gibt {critical} kritische Mitglieder.</p>
+                <p>Es gibt {critical.length} {critical.length === 1 ? 'kritisches' : 'kritische'} {critical.length === 1 ? 'Mitglied' : 'Mitglieder'}.</p>
+                {critical.map(cr => (
+                    <div key={cr.tag}>
+                        {cr.name} ({cr.tag}) - zuletzt gesehen: {formatLastSeen(cr.last_seen)}
+                    </div>
+                ))}
             </section>
         )
     }
