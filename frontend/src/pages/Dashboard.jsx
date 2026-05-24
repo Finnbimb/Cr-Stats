@@ -10,7 +10,7 @@ function parseLastSeen(ls) {
 
 function calcActiveMembers(members) {
   if (!members?.length) return null
-  const cutoff = Date.now() - 24 * 60 * 60 * 1000
+  const cutoff = Date.now() - 24 * 60 * 60 * 1000 // 24h
   const active = members.filter(m => {
     const date = parseLastSeen(m.last_seen)
     return date ? date.getTime() > cutoff : true
@@ -18,6 +18,20 @@ function calcActiveMembers(members) {
   return { active, total: members.length }
 }
 
+function calcCriticalMembers(membersdata) {
+    if (!membersdata?.length) return null
+    const cutoff = Date.now() - 24 * 60 * 60 * 1000 * 2 // 48h
+    const critical = membersdata.filter(m => {
+        const lastSeen = parseLastSeen(m.last_seen)
+        if (Date.now() - lastSeen.getTime() < cutoff) 
+          return false
+        else {
+          m.isCritical = true
+          return true
+        }
+    })
+    return critical
+}
 function Dashboard({ data, error, isLoading, avgTrophies, warData, warLog, membersData }) {
   if (isLoading) {
     return <section className="panel">Dashboard wird geladen...</section>
@@ -53,6 +67,7 @@ function Dashboard({ data, error, isLoading, avgTrophies, warData, warLog, membe
   if (!data) return null
 
   const activity = calcActiveMembers(membersData)
+  const critical = calcCriticalMembers(membersData)
 
   return (
     <section className="dashboard-layout">
@@ -88,7 +103,7 @@ function Dashboard({ data, error, isLoading, avgTrophies, warData, warLog, membe
       </div>
 
       <WarTop warData={warData} warRank={warData?.war_rank ?? null} warLog={warLog} />
-
+      <Critical membersData={membersData} critical={critical} />
     </section>
   )
 }
