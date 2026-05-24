@@ -96,7 +96,6 @@ function IconEye({ closed }) {
 
 function Login({ error, isLoading, onLogin, onRegister }) {
   const [tab, setTab] = useState('login')
-  const [step, setStep] = useState(1)
   const [activeFeature, setActiveFeature] = useState(0)
 
   // Login state
@@ -116,7 +115,6 @@ function Login({ error, isLoading, onLogin, onRegister }) {
 
   function switchTab(next) {
     setTab(next)
-    setStep(1)
     setLocalError('')
   }
 
@@ -125,19 +123,17 @@ function Login({ error, isLoading, onLogin, onRegister }) {
     onLogin(username, password)
   }
 
-  function handleStep1(e) {
+  function handleRegisterSubmit(e) {
     e.preventDefault()
     setLocalError('')
     if (rPassword !== rConfirm) {
       setLocalError('Passwörter stimmen nicht überein.')
       return
     }
-    setStep(2)
-  }
-
-  function handleRegisterSubmit(e) {
-    e.preventDefault()
-    setLocalError('')
+    if (!rClanTag.trim()) {
+      setLocalError('Clan-Tag wird benötigt.')
+      return
+    }
     onRegister(rUsername, rEmail, rPassword, rClanTag)
   }
 
@@ -313,16 +309,8 @@ function Login({ error, isLoading, onLogin, onRegister }) {
               </form>
             )}
 
-            {tab === 'register' && step === 1 && (
-              <form className="auth-form" onSubmit={handleStep1}>
-                <div className="step-indicator">
-                  <div className="step-circle active">1</div>
-                  <span className="step-name active">Konto</span>
-                  <div className="step-line" />
-                  <div className="step-circle inactive">2</div>
-                  <span className="step-name">Clan</span>
-                </div>
-
+            {tab === 'register' && (
+              <form className="auth-form" onSubmit={handleRegisterSubmit}>
                 <div className="auth-field">
                   <label className="auth-field-label">Benutzername</label>
                   <div className="auth-input-wrap">
@@ -374,7 +362,7 @@ function Login({ error, isLoading, onLogin, onRegister }) {
                 </div>
 
                 <div className="auth-field">
-                  <label className="auth-field-label">Passwort Bestätigen</label>
+                  <label className="auth-field-label">Passwort bestätigen</label>
                   <div className="auth-input-wrap">
                     <span className="icon-left"><IconKey /></span>
                     <input
@@ -392,30 +380,6 @@ function Login({ error, isLoading, onLogin, onRegister }) {
                   </div>
                 </div>
 
-                {displayError && <p className="auth-error">{displayError}</p>}
-
-                <button className="auth-btn-primary" type="submit">
-                  Weiter →
-                </button>
-
-                <div className="auth-or">oder</div>
-
-                <button type="button" className="auth-btn-secondary" onClick={() => switchTab('login')}>
-                  Bereits registriert? Einloggen
-                </button>
-              </form>
-            )}
-
-            {tab === 'register' && step === 2 && (
-              <form className="auth-form" onSubmit={handleRegisterSubmit}>
-                <div className="step-indicator">
-                  <div className="step-circle inactive">1</div>
-                  <span className="step-name">Konto</span>
-                  <div className="step-line" />
-                  <div className="step-circle active">2</div>
-                  <span className="step-name active">Clan</span>
-                </div>
-
                 <div className="auth-field">
                   <label className="auth-field-label">Clan Tag</label>
                   <div className="auth-input-wrap">
@@ -426,13 +390,10 @@ function Login({ error, isLoading, onLogin, onRegister }) {
                       onChange={e => setRClanTag(e.target.value)}
                       placeholder="#ABCD123"
                       autoComplete="off"
+                      required
                     />
                   </div>
                 </div>
-
-                <p className="hint auth-hint">
-                  Optional – kann später im Profil gesetzt werden.
-                </p>
 
                 {displayError && <p className="auth-error">{displayError}</p>}
 
@@ -440,8 +401,10 @@ function Login({ error, isLoading, onLogin, onRegister }) {
                   {isLoading ? 'Registriert...' : 'Registrieren'}
                 </button>
 
-                <button type="button" className="auth-btn-secondary" onClick={() => setStep(1)}>
-                  ← Zurück
+                <div className="auth-or">oder</div>
+
+                <button type="button" className="auth-btn-secondary" onClick={() => switchTab('login')}>
+                  Bereits registriert? Einloggen
                 </button>
               </form>
             )}

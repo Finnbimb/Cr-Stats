@@ -37,11 +37,11 @@ function createAuthHeaders(token, extraHeaders = {}) {
   }
 }
 
-export async function registerUser(username, email, password) {
+export async function registerUser(username, email, password, clanTag) {
   return apiRequest('/register', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ username, email, password }),
+    body: JSON.stringify({ username, email, password, clan_tag: clanTag }),
   })
 }
 

@@ -7,6 +7,7 @@ from app.dependencies import get_current_user, get_db
 from app.models import User
 from app.schemas.auth import RegisterRequest
 from app.core.security import create_access_token
+from app.services.clash_royale import fetch_clan_by_tag
 
 router = APIRouter()
 
@@ -43,10 +44,24 @@ def register_user(data: RegisterRequest, db: Session = Depends(get_db)):
     if existing_email:
         raise HTTPException(status_code=400, detail="Email is already registered")
 
+    # Clan über CR-API auflösen, BEVOR wir den User anlegen — schlägt der Lookup
+    # fehl, kommt der User gar nicht erst in die DB (kein Stub-Account).
+    try:
+        clan_data = fetch_clan_by_tag(data.clan_tag)
+    except HTTPException as exc:
+        if exc.status_code == 404:
+            raise HTTPException(status_code=400, detail="Clan-Tag wurde nicht gefunden")
+        raise HTTPException(status_code=400, detail="Clan-Tag konnte nicht überprüft werden")
+
+    location = clan_data.get("location") or {}
+
     new_user = User(
         username=data.username,
         email=data.email,
-        password=hash_password(data.password)
+        password=hash_password(data.password),
+        clan_tag=data.clan_tag,
+        location_id=location.get("id"),
+        location=location.get("name"),
     )
 
     db.add(new_user)
@@ -56,7 +71,9 @@ def register_user(data: RegisterRequest, db: Session = Depends(get_db)):
     return {
         "message": "User registered successfully",
         "username": new_user.username,
-        "email": new_user.email
+        "email": new_user.email,
+        "clan_tag": new_user.clan_tag,
+        "location": new_user.location,
     }
 
 

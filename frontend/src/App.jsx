@@ -7,7 +7,7 @@ import Profile from './pages/Profile.jsx'
 import Rankings from './pages/Rankings.jsx'
 import War from './pages/War.jsx'
 import Topbar from './components/Topbar.jsx'
-import { loginUser, registerUser, updateClanTag, getDashboard, getMembers, getWarPerformers, getWarParticipants, getRankingsHistory, getWarLog } from './services/api.js'
+import { loginUser, registerUser, getDashboard, getMembers, getWarPerformers, getWarParticipants, getRankingsHistory, getWarLog } from './services/api.js'
 
 const POLL_INTERVAL = 5 * 60 * 1000
 const RANKINGS_POLL_INTERVAL = 30 * 60 * 1000
@@ -135,14 +135,8 @@ function App() {
     setIsAuthLoading(true)
     setAuthError('')
     try {
-      await registerUser(username, email, password)
+      await registerUser(username, email, password, clanTag)
       const data = await loginUser(username, password)
-      // Clan-Tag VOR dem Token-Setzen schreiben, sonst lädt Dashboard
-      // noch ohne clan_tag (Race zwischen useEffect-Trigger und Backend-Write).
-      if (clanTag.trim()) {
-        const normalized = clanTag.trim().toUpperCase()
-        await updateClanTag(data.access_token, normalized.startsWith('#') ? normalized : `#${normalized}`)
-      }
       localStorage.setItem('token', data.access_token)
       setToken(data.access_token)
       navigateTo('dashboard')
