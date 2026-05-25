@@ -2,16 +2,13 @@ import { useState } from 'react'
 import '../modal.css'
 import { checkPlayerTagExists } from '../services/api'
 
-function VerifyPlayerModal({ onClose, onSuccess }) {
+function VerifyPlayerModal({ token, onClose, onSuccess }) {
     const [playerTag, setPlayerTag] = useState('')
-    const [token, setToken] = useState('')
+    const [verifyToken, setVerifyToken] = useState('')
 
     function handleSubmit(e) {
         e.preventDefault()
-        checkPlayerTagExists({
-            player_tag: playerTag,
-            token: token,
-        })
+        checkPlayerTagExists(token, playerTag, verifyToken)
             .then(res => {
                 if (res.exists) {
                     onSuccess()
@@ -41,9 +38,9 @@ function VerifyPlayerModal({ onClose, onSuccess }) {
                     <label>
                         <input
                             type="text"
-                            value={token}
-                            onChange={e => setToken(e.target.value)}
-                            placeholder="Token"
+                            value={verifyToken}
+                            onChange={e => setVerifyToken(e.target.value)}
+                            placeholder="Token aus dem Spiel"
                             required
                         />
                     </label>

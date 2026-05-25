@@ -169,6 +169,7 @@ function Profile({ onUnauthorized, token, onDashboardInvalidate }) {
 
       {verifyOpen && (
         <VerifyPlayerModal
+          token={token}
           onClose={() => setVerifyOpen(false)}
           onSuccess={() => {
             setVerifyOpen(false)
