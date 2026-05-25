@@ -13,7 +13,7 @@ function VerifyPlayerModal({ onClose, onSuccess }) {
             token: token,
         })
             .then(res => {
-                if (res.ok ) {
+                if (res.exists) {
                     onSuccess()
                 } else {
                     alert('Der Spieler-Tag konnte nicht verifiziert werden. Bitte überprüfe die Eingabe und versuche es erneut.')

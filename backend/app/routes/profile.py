@@ -7,6 +7,7 @@ from app.schemas.profile import ClanTagRequest
 from app.schemas.profile import PlayerTagRequest
 from app.services.clash_royale import fetch_player_by_tag
 from app.services.clash_royale import fetch_clan_by_tag, normalize_clan_tag
+from app.services.clash_royale import check_player_tag
 
 router = APIRouter()
 
@@ -42,7 +43,7 @@ def check_player_tag_exists(
     current_user: User = Depends(get_current_db_user),
     db: Session = Depends(get_db)
 ):
-    exists = check_player_tag_exists(request.player_tag, request.token)
+    exists = check_player_tag(request.player_tag, request.token)
     return {"exists": exists}
 
 
