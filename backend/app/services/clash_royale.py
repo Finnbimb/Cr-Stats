@@ -339,10 +339,11 @@ def check_player_tag(player_tag: str, token: str) -> bool:
     )
     if response.status_code == 404:
         return False
-    response.raise_for_status()
-    if response.json().get("status") == "ok":
-        return True
-    return False
+    if not response.ok:
+        # CR-API hat anders geantwortet als 2xx/404 → loggen statt 500 zu werfen
+        print(f"[verifytoken] {response.status_code} for {tag}: {response.text[:200]}")
+        return False
+    return response.json().get("status") == "ok"
 
 def fetch_clan_members(clan_tag: str) -> list[dict]:
     clan_tag = normalize_clan_tag(clan_tag)
