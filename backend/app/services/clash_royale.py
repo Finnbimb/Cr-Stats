@@ -325,7 +325,7 @@ def fetch_player_by_tag(player_tag: str):
         "clan_name": clan_data.get("name"),
     }
     
-def check_player_tag_exists(player_tag: str, token: str) -> bool:
+def check_player_tag(player_tag: str, token: str) -> bool:
     tag = normalize_player_tag(player_tag)
     encoded = urllib.parse.quote(tag, safe="")
     response = requests.post(
@@ -341,7 +341,7 @@ def check_player_tag_exists(player_tag: str, token: str) -> bool:
         return False
     response.raise_for_status()
     if response.json().get("status") == "ok":
-        return {"ok": True}
+        return True
     return False
 
 def fetch_clan_members(clan_tag: str) -> list[dict]:
