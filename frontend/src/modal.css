@@ -1,0 +1,19 @@
+.modal-overlay {
+    position: fixed;
+    inset: 0;                          /* top:0; right:0; bottom:0; left:0 */
+    background: rgba(0, 0, 0, 0.65);   /* schwarz mit 65% Deckkraft */
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    z-index: 500;                      /* über der Topbar (z-index: 200) */
+}
+
+.modal-card {
+    background: var(--bg-panel);       /* opak — wird NICHT vom Overlay-Alpha betroffen */
+    border: 1px solid var(--border-medium);
+    padding: 1.5rem;
+    max-width: 460px;
+    width: 90%;
+}

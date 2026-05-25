@@ -4,6 +4,7 @@ from threading import Lock
 import requests
 from datetime import datetime, timezone
 from fastapi import HTTPException
+import urllib
 
 from app.core.config import get_cr_api_token
 from app.models import User
@@ -323,6 +324,25 @@ def fetch_player_by_tag(player_tag: str):
         "clan_tag": clan_data.get("tag"),
         "clan_name": clan_data.get("name"),
     }
+    
+def check_player_tag_exists(player_tag: str, token: str) -> bool:
+    tag = normalize_player_tag(player_tag)
+    encoded = urllib.parse.quote(tag, safe="")
+    response = requests.post(
+        f"https://api.clashroyale.com/v1/players/{encoded}/verifytoken",
+        headers={
+           "Authorization": f"Bearer {get_cr_api_token()}",
+            "Content-Type": "application/json",
+        },
+        json={"token": token.strip()},
+        timeout=10,
+    )
+    if response.status_code == 404:
+        return False
+    response.raise_for_status()
+    if response.json().get("status") == "ok":
+        return {"ok": True}
+    return False
 
 def fetch_clan_members(clan_tag: str) -> list[dict]:
     clan_tag = normalize_clan_tag(clan_tag)

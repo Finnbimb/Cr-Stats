@@ -176,6 +176,13 @@
   margin-right: 0.5rem;
 }
 
+.save-button {
+  /* replace invalid property 'horizontal-align' */
+  justify-self: center; /* aligns the button to the right in grid/flex containers */
+  text-align: center;
+  
+}
+
 
 /* ════════════════════════════════════════════════════════════
    FORMULARE

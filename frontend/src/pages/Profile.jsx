@@ -3,16 +3,19 @@ import {
   getProfile,
   updateClanTag,
 } from '../services/api.js'
+import VerifyPlayerModal from '../components/VerifyPlayerModal.jsx'
 
 function Profile({ onUnauthorized, token, onDashboardInvalidate }) {
   const [profile, setProfile] = useState(null)
   const [clanTag, setClanTag] = useState('')
+  const [playerTag, setPlayerTag] = useState('')
 
   const [error, setError] = useState('')
   const [successMessage, setSuccessMessage] = useState('')
 
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
+  const [verifyOpen, setVerifyOpen] = useState(false)
 
   useEffect(() => {
     let isActive = true
@@ -115,55 +118,65 @@ function Profile({ onUnauthorized, token, onDashboardInvalidate }) {
   }
 
   return (
-    <section className="page-stack">
-      <div className="panel">
-        <p className="eyebrow">Profile</p>
-        <h2>Settings</h2>
-        <p className="hint">
-          Hier kannst du den Clan-Tag setzen. Die Location wird automatisch
-          aus den Clash-Royale-Clandaten übernommen.
-        </p>
-      </div>
+    <>
+      <section className="page-stack">
+        <div className="panel">
+          <p className="eyebrow">Profile</p>
+          <h2>Settings</h2>
+          <p className="hint">
+            Hier kannst du den Clan-Tag setzen. Die Location wird automatisch
+            aus den Clash-Royale-Clandaten übernommen.
+          </p>
+        </div>
 
-      <div className="panel profile-info">
-        <p>
-          <strong>Username:</strong> {profile?.username}
-        </p>
-        <p>
-          <strong>Email:</strong> {profile?.email}
-        </p>
-        <p>
-          <strong>Gespeicherter Clan-Tag:</strong>{' '}
-          {profile?.clan_tag || 'Noch nicht gesetzt'}
-        </p>
-        <p>
-          <strong>Gespeicherte Location:</strong>{' '}
-          {profile?.location || 'Noch nicht gesetzt'}
-        </p>
-      </div>
+        <div className="panel profile-info">
+          <p>
+            <strong>Username:</strong> {profile?.username}
+          </p>
+          <p>
+            <strong>Email:</strong> {profile?.email}
+          </p>
+          <p>
+            <strong>Gespeicherter Clan-Tag:</strong>{' '}
+            {profile?.clan_tag || 'Noch nicht gesetzt'}
+          </p>
+          <p>
+            <strong>Gespeicherte Location:</strong>{' '}
+            {profile?.location || 'Noch nicht gesetzt'}
+          </p>
+        </div>
 
-      <form className="panel form-stack" onSubmit={handleSubmit}>
-        <label className="form-field">
-          <span>Clan Tag</span>
-          <input
-            value={clanTag}
-            onChange={(event) => setClanTag(event.target.value)}
-            placeholder="#ABCD123"
-          />
-        </label>
-        <p className="hint">
-          Das Backend setzt das `#` automatisch, falls du es weglaesst, und
-          prueft den Clan direkt bei der Clash-Royale-API.
-        </p>
+        <form className="panel form-stack" onSubmit={handleSubmit}>
+          <label className="form-field">
+            <span>Clan Tag</span>
+            <input
+              value={clanTag}
+              onChange={(event) => setClanTag(event.target.value)}
+              placeholder="#ABCD123"
+            />
+          </label>
 
-        {error ? <p className="message error">{error}</p> : null}
-        {successMessage ? <p className="message success">{successMessage}</p> : null}
+          <button type="button" onClick={() => setVerifyOpen(true)}>
+            Spieler-Tag überprüfen
+          </button>
 
-        <button disabled={isSaving} type="submit">
-          {isSaving ? 'Speichert...' : 'Profil speichern'}
-        </button>
+          {error ? <p className="message error">{error}</p> : null}
+          {successMessage ? <p className="message success">{successMessage}</p> : null}
+
       </form>
+      <button onClick={() => setVerifyOpen(true)}>Player-Tag verifizieren</button>
     </section>
+
+      {verifyOpen && (
+        <VerifyPlayerModal
+          onClose={() => setVerifyOpen(false)}
+          onSuccess={() => {
+            setVerifyOpen(false)
+            setSuccessMessage('Spieler-Tag erfolgreich verifiziert!')
+          }}
+        />
+      )}
+    </>
   )
 }
 
