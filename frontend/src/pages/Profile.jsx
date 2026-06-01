@@ -3,19 +3,16 @@ import {
   getProfile,
   updateClanTag,
 } from '../services/api.js'
-import VerifyPlayerModal from '../components/VerifyPlayerModal.jsx'
 
 function Profile({ onUnauthorized, token, onDashboardInvalidate }) {
   const [profile, setProfile] = useState(null)
   const [clanTag, setClanTag] = useState('')
-  const [playerTag, setPlayerTag] = useState('')
 
   const [error, setError] = useState('')
   const [successMessage, setSuccessMessage] = useState('')
 
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
-  const [verifyOpen, setVerifyOpen] = useState(false)
 
   useEffect(() => {
     let isActive = true
@@ -156,27 +153,11 @@ function Profile({ onUnauthorized, token, onDashboardInvalidate }) {
             />
           </label>
 
-          <button type="button" onClick={() => setVerifyOpen(true)}>
-            Spieler-Tag überprüfen
-          </button>
-
           {error ? <p className="message error">{error}</p> : null}
           {successMessage ? <p className="message success">{successMessage}</p> : null}
 
-      </form>
-      <button onClick={() => setVerifyOpen(true)}>Player-Tag verifizieren</button>
-    </section>
-
-      {verifyOpen && (
-        <VerifyPlayerModal
-          token={token}
-          onClose={() => setVerifyOpen(false)}
-          onSuccess={() => {
-            setVerifyOpen(false)
-            setSuccessMessage('Spieler-Tag erfolgreich verifiziert!')
-          }}
-        />
-      )}
+        </form>
+      </section>
     </>
   )
 }

@@ -4,10 +4,8 @@ from sqlalchemy.orm import Session
 from app.dependencies import get_current_db_user, get_db
 from app.models import User
 from app.schemas.profile import ClanTagRequest
-from app.schemas.profile import PlayerTagRequest
 from app.services.clash_royale import fetch_player_by_tag
 from app.services.clash_royale import fetch_clan_by_tag, normalize_clan_tag
-from app.services.clash_royale import check_player_tag
 
 router = APIRouter()
 
@@ -35,16 +33,6 @@ def save_clan_tag(
         "location_id": current_user.location_id,
         "location": current_user.location,
     }
-
-
-@router.post("/profile/check_player_tag")
-def check_player_tag_exists(
-    request: PlayerTagRequest,
-    current_user: User = Depends(get_current_db_user),
-    db: Session = Depends(get_db)
-):
-    exists = check_player_tag(request.player_tag, request.token)
-    return {"exists": exists}
 
 
 @router.get("/profile")

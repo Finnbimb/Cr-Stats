@@ -82,19 +82,6 @@ export async function updateClanTag(token, clanTag) {
   })
 }
 
-export async function checkPlayerTagExists(authToken, playerTag, verifyToken) {
-  return apiRequest('/profile/check_player_tag', {
-    method: 'POST',
-    headers: createAuthHeaders(authToken, {
-      'Content-Type': 'application/json',
-    }),
-    body: JSON.stringify({
-      player_tag: playerTag,
-      token: verifyToken,
-    }),
-  })
-}
-
 export async function getMembers(token) {
   return apiRequest('/members', {
     headers: createAuthHeaders(token),

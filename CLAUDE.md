@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-CrStats is a Clash Royale clan statistics web app for our specific clan (multi-user but every user belongs to one clan). FastAPI backend + Vite/React frontend + a Discord bot (`backend/bot.py`) that shares the same models/services. The backend is deployed on a Hetzner Ubuntu server; the frontend builds to static files served by nginx alongside the API.
+CrStats is a Clash Royale clan statistics web app aimed at users worldwide: anyone can register and pick their own clan (multi-user, each user belongs to one clan, many different clans across all users). FastAPI backend + Vite/React frontend + a Discord bot (`backend/bot.py`) that shares the same models/services. The backend is deployed on a Hetzner Ubuntu server; the frontend builds to static files served by nginx alongside the API.
 
 ## Commands
 
