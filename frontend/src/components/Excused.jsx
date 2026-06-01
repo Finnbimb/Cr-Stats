@@ -10,16 +10,32 @@ function handleSubmit(event) {
     alert(`Entschuldigung eingereicht für ${name} mit Grund: ${reason}`);
 }
 
-function Excused({ members }) {
+function Excused({ members, onClose }) {
     const participants = Array.isArray(members) ? members : [];
-    return(
-        <div className= "background war-card">
-            <div className="excused">
-                <h2>Wen willst du entschuldigen?</h2>
-                <p>{participants.length > 0 && participants[0]?.name ? `Ausgewählt: ${participants[0].name}` : 'Kein Mitglied ausgewählt'}</p>
-                <form onSubmit={handleSubmit}>
-                    <label>
-                        Name des Mitglieds:
+
+    // Backdrop-Klick schließt; Klick im Card-Bereich wird gestoppt (stopPropagation).
+    return (
+        <div className="excuse-overlay" onClick={onClose}>
+            <div className="excuse-modal" onClick={(event) => event.stopPropagation()}>
+                <div className="excuse-modal-header">
+                    <h2>Wen willst du entschuldigen?</h2>
+                    {onClose && (
+                        <button
+                            type="button"
+                            className="excuse-close"
+                            onClick={onClose}
+                            aria-label="Schließen"
+                        >
+                            ×
+                        </button>
+                    )}
+                </div>
+
+                <p className="excuse-count">{participants.length} Mitglieder verfügbar</p>
+
+                <form className="excuse-form" onSubmit={handleSubmit}>
+                    <label className="form-field">
+                        <span>Name des Mitglieds</span>
                         <select name="name" required defaultValue="">
                             <option value="" disabled>Bitte wählen...</option>
                             {participants.map((participant) => (
@@ -29,17 +45,35 @@ function Excused({ members }) {
                             ))}
                         </select>
                     </label>
-                    <br />
-                    <label>
-                        Grund der Entschuldigung:
-                        <textarea name="reason" required></textarea>
+
+                    <label requred className="form-field">
+                        <span>Dauer der Abwesenheit</span>
+                        <select>
+                            <option value="">Tag(e)</option>
+                            <option value="1">Wochen</option>
+                        </select>
+                        <input type="number" name="amount" required />
                     </label>
-                    <br />
-                    <button type="submit">Entschuldigung einreichen</button>
+
+                    <label className="form-field">
+                        <span>Grund der Entschuldigung</span>
+                        <textarea name="reason" rows={3} required></textarea>
+                    </label>
+
+                    <div className="excuse-actions">
+                        {onClose && (
+                            <button type="button" className="excuse-cancel" onClick={onClose}>
+                                Abbrechen
+                            </button>
+                        )}
+                        <button type="submit" className="excuse-submit">
+                            Entschuldigung einreichen
+                        </button>
+                    </div>
                 </form>
             </div>
         </div>
-    )
+    );
 }
 
-export default Excused
+export default Excused;

@@ -2,8 +2,7 @@ import WarTop from '../components/WarTop.jsx'
 import Critical from '../components/Critical.jsx'
 import Excused from '../components/Excused.jsx'
 
-import React from 'react'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 
 function parseLastSeen(ls) {
   if (!ls) return null
@@ -118,7 +117,7 @@ function Dashboard({ data, error, isLoading, avgTrophies, warData, warLog, membe
           <button onClick={() => {if (!showExcuseForm) setShowExcuseForm(true); else setShowExcuseForm(false)}}>Abmeldung hinzufügen</button>
       </div>
       
-      {showExcuseForm && <Excused members={membersData} />}
+      {showExcuseForm && <Excused members={membersData} onClose={() => setShowExcuseForm(false)} />}
     </section>
   )
 }
