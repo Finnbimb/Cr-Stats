@@ -34,6 +34,17 @@ class Members(Base):
     games_played_today = Column(Integer, nullable=True)
     boat_attacks = Column(Integer, nullable=True)
     updated_at = Column(Integer, nullable=True)
+    
+class ExcusedPlayer(Base):
+    __tablename__ = "excused_players"
+
+    id = Column(Integer, primary_key=True, index=True)
+    player_tag = Column(String, index=True, nullable=False)
+    name = Column(String, nullable=False)
+    clan_tag = Column(String, nullable=True)
+    reason = Column(String, nullable=True)
+    excused_at = Column(Integer, nullable=False)
+    excused_until = Column(Integer, nullable=True)
 
 
 class ClanRankingSnapshot(Base):
