@@ -46,13 +46,15 @@ function Excused({ members, onClose }) {
                         </select>
                     </label>
 
-                    <label requred className="form-field">
+                    <label className="form-field">
                         <span>Dauer der Abwesenheit</span>
-                        <select>
-                            <option value="">Tag(e)</option>
-                            <option value="1">Wochen</option>
-                        </select>
-                        <input type="number" name="amount" required />
+                        <div className="duration-row">
+                            <input type="number" name="amount" min="1" required />
+                            <select name="unit">
+                                <option value="days">Tag(e)</option>
+                                <option value="weeks">Wochen</option>
+                            </select>
+                        </div>
                     </label>
 
                     <label className="form-field">
