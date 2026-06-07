@@ -11,7 +11,9 @@ from app.services.war_tracking import poll_war_data_loop
 from app.services.ranking_snapshots import snapshot_loop
 
 
+@asynccontextmanager
 async def lifespan(app: FastAPI):
+    init_database()
     task1 = asyncio.create_task(poll_war_data_loop())
     task2 = asyncio.create_task(snapshot_loop())
     yield
@@ -19,7 +21,7 @@ async def lifespan(app: FastAPI):
     task2.cancel()
     
     
-app = FastAPI(title="CrStats API")
+app = FastAPI(title="CrStats API", lifespan=lifespan)
 
 
 app.add_middleware(
@@ -29,8 +31,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-init_database()
 
 app.include_router(misc.router)
 app.include_router(auth.router)
