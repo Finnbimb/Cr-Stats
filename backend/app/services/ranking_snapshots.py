@@ -4,6 +4,8 @@ from time import time
 
 from fastapi import HTTPException
 
+from sqlalchemy.exc import IntegrityError
+
 from app.database import SessionLocal
 from app.models import ClanRankingSnapshot, User
 from app.services.clash_royale import (
@@ -77,7 +79,11 @@ def take_snapshot_for_clan(clan_tag: str, location_id: int, location_name: str |
             captured_at=int(time()),
         )
         db.add(snapshot)
-        db.commit()
+        try:
+             db.commit()
+        except IntegrityError:
+             db.rollback()
+             return False
         return True
     finally:
         db.close()

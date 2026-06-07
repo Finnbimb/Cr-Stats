@@ -30,6 +30,14 @@ def ensure_schema():
         users_table = connection.exec_driver_sql(
             "SELECT name FROM sqlite_master WHERE type='table' AND name='users'"
         ).fetchone()
+        
+        connection.exec_driver_sql(
+            "DELETE FROM clan_ranking_snapshots WHERE id NOT IN (SELECT MIN(id) FROM clan_ranking_snapshots GROUP BY clan_tag, snapshot_date)"
+        )
+        
+        connection.exec_driver_sql(
+            "CREATE UNIQUE INDEX IF NOT EXISTS uq_snapshot_clan_date ON clan_ranking_snapshots (clan_tag, snapshot_date)"
+       )
 
         if not users_table:
             return
