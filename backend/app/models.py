@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Column, Integer, String, UniqueConstraint
 from app.database import Base
 
 
@@ -49,6 +49,7 @@ class ExcusedPlayer(Base):
 
 class ClanRankingSnapshot(Base):
     __tablename__ = "clan_ranking_snapshots"
+    __table_args__ = (UniqueConstraint("clan_tag", "snapshot_date"),)
 
     id = Column(Integer, primary_key=True, index=True)
     clan_tag = Column(String, index=True, nullable=False)
