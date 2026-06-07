@@ -1323,7 +1323,8 @@ textarea:focus {
 }
 
 .excuse-form select,
-.excuse-form textarea {
+.excuse-form textarea,
+.excuse-form input {
   width: 100%;
   border: 1px solid var(--border-medium);
   border-radius: 0;
@@ -1336,10 +1337,25 @@ textarea:focus {
 }
 
 .excuse-form select:focus,
-.excuse-form textarea:focus {
+.excuse-form textarea:focus,
+.excuse-form input:focus {
   outline: none;
   border-color: var(--color-brand);
   background: var(--bg-panel);
+}
+
+.duration-row {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.duration-row input {
+  flex: 1;
+}
+
+.duration-row select {
+  flex: 0 0 auto;
+  width: auto;
 }
 
 .excuse-form textarea {
