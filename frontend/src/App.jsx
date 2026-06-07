@@ -226,7 +226,10 @@ function App() {
           <Profile
             token={token}
             onUnauthorized={handleLogout}
-            onDashboardInvalidate={() => loadAllData(true)}
+            onDashboardInvalidate={() => {
+              loadAllData(true)
+              loadRankings(true)
+            }}
           />
         )}
       </main>
