@@ -1,17 +1,29 @@
 import React from "react";
+import { addExcused } from "../services/api";
 
-function handleSubmit(event) {
-    event.preventDefault();
-    const name = event.target.name.value;
-    const reason = event.target.reason.value;
-    // Hier kannst du die Logik hinzufügen, um die Entschuldigung zu verarbeiten,
-    // z.B. eine API-Anfrage senden oder den Zustand aktualisieren.
-    console.log(`Entschuldigung eingereicht für ${name} mit Grund: ${reason}`);
-    alert(`Entschuldigung eingereicht für ${name} mit Grund: ${reason}`);
-}
-
-function Excused({ members, onClose }) {
+function Excused({ token, members, onClose }) {
     const participants = Array.isArray(members) ? members : [];
+
+    async function handleSubmit(event) {
+        event.preventDefault();
+        const player_tag= event.target.player_tag.value
+        const name= participants.find(p => p.tag === player_tag)?.name
+        const amount= Number(event.target.amount.value)
+        const unit = event.target.unit.value
+        const reason= event.target.reason.value;
+
+        const data = {player_tag, name, amount, unit, reason}   
+
+        try{
+            await addExcused(token, data)
+            onClose()
+        }
+        catch (err) {
+            alert(err.message)
+        } 
+
+
+    }
 
     // Backdrop-Klick schließt; Klick im Card-Bereich wird gestoppt (stopPropagation).
     return (
@@ -36,10 +48,10 @@ function Excused({ members, onClose }) {
                 <form className="excuse-form" onSubmit={handleSubmit}>
                     <label className="form-field">
                         <span>Name des Mitglieds</span>
-                        <select name="name" required defaultValue="">
+                        <select name="player_tag" required defaultValue="">
                             <option value="" disabled>Bitte wählen...</option>
                             {participants.map((participant) => (
-                                <option key={participant.tag ?? participant.name} value={participant.name}>
+                                <option key={participant.tag ?? participant.name} value={participant.tag}>
                                     {participant.name}
                                 </option>
                             ))}

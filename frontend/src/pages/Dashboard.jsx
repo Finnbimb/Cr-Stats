@@ -39,7 +39,7 @@ function calcCriticalMembers(membersdata) {
     })
     return critical
 }
-function Dashboard({ data, error, isLoading, avgTrophies, warData, warLog, membersData }) {
+function Dashboard({token, data, error, isLoading, avgTrophies, warData, warLog, membersData }) {
   const [showExcuseForm, setShowExcuseForm] = useState(false)
   if (isLoading) {
     return <section className="panel">Dashboard wird geladen...</section>
@@ -117,7 +117,7 @@ function Dashboard({ data, error, isLoading, avgTrophies, warData, warLog, membe
           <button onClick={() => {if (!showExcuseForm) setShowExcuseForm(true); else setShowExcuseForm(false)}}>Abmeldung hinzufügen</button>
       </div>
       
-      {showExcuseForm && <Excused members={membersData} onClose={() => setShowExcuseForm(false)} />}
+      {showExcuseForm && <Excused token={token} members={membersData} onClose={() => setShowExcuseForm(false)} />}
     </section>
   )
 }

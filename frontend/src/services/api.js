@@ -112,6 +112,22 @@ export async function getWarLog(token) {
   })
 }
 
+export async function getExcused(token) {
+    return apiRequest('/excused', {
+      headers: createAuthHeaders(token),   
+    })
+}
+
+export async function addExcused(token, data) {
+  return apiRequest('/excused', {
+    method: 'POST',
+    headers: createAuthHeaders(token, {
+      'Content-Type': 'application/json',
+    }),
+    body: JSON.stringify(data)
+  })
+}
+
 // export async function getCurrentRiverRace(token) {
 //   return apiRequest('/dashboard/current-riverrace', {
 //     headers: createAuthHeaders(token),

@@ -189,6 +189,7 @@ function App() {
       <main className="app-shell">
         {currentPage === 'dashboard' && (
           <Dashboard
+            token={token}
             data={dashboardData}
             error={error}
             isLoading={isLoading && !dashboardData}
