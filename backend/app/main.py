@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import CORS_ORIGINS
 from app.database import init_database
-from app.routes import auth, dashboard, members, misc, profile, rankings
+from app.routes import auth, dashboard, members, misc, profile, rankings, excused
 
 from contextlib import asynccontextmanager
 from app.services.war_tracking import poll_war_data_loop
@@ -38,3 +38,4 @@ app.include_router(profile.router)
 app.include_router(dashboard.router)
 app.include_router(members.router)
 app.include_router(rankings.router)
+app.include_router(excused.router)

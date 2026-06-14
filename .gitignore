@@ -1,11 +1,7 @@
 backend/.env
 backend/venv/
 backend/frontend/node_modules/
-backend/crstats.db
-backend/crstats_server.db
-backend/crstats_server_snapshot.db
-backend/*copy*.db
-backend/*snapshot*.db
+backend/*.db
 backend/bot.log
 bot.log
 __pycache__/

@@ -1,5 +1,8 @@
 import WarTop from '../components/WarTop.jsx'
 import Critical from '../components/Critical.jsx'
+import Excused from '../components/Excused.jsx'
+
+import { useState } from 'react'
 
 function parseLastSeen(ls) {
   if (!ls) return null
@@ -36,7 +39,8 @@ function calcCriticalMembers(membersdata) {
     })
     return critical
 }
-function Dashboard({ data, error, isLoading, avgTrophies, warData, warLog, membersData }) {
+function Dashboard({token, data, error, isLoading, avgTrophies, warData, warLog, membersData }) {
+  const [showExcuseForm, setShowExcuseForm] = useState(false)
   if (isLoading) {
     return <section className="panel">Dashboard wird geladen...</section>
   }
@@ -108,6 +112,12 @@ function Dashboard({ data, error, isLoading, avgTrophies, warData, warLog, membe
 
       <WarTop warData={warData} warRank={warData?.war_rank ?? null} warLog={warLog} />
       <Critical membersData={membersData} critical={critical} />
+      <div className="excused">
+          <h2>Entschuldigte Mitglieder</h2>
+          <button onClick={() => {if (!showExcuseForm) setShowExcuseForm(true); else setShowExcuseForm(false)}}>Abmeldung hinzufügen</button>
+      </div>
+      
+      {showExcuseForm && <Excused token={token} members={membersData} onClose={() => setShowExcuseForm(false)} />}
     </section>
   )
 }

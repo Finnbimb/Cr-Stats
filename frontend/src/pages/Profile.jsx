@@ -156,6 +156,9 @@ function Profile({ onUnauthorized, token, onDashboardInvalidate }) {
           {error ? <p className="message error">{error}</p> : null}
           {successMessage ? <p className="message success">{successMessage}</p> : null}
 
+          <button disabled={isSaving} type="submit">
+            {isSaving ? 'Speichert...' : 'Profil speichern'}
+          </button>
         </form>
       </section>
     </>

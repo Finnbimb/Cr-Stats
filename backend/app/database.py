@@ -37,7 +37,7 @@ def ensure_schema():
         
         connection.exec_driver_sql(
             "CREATE UNIQUE INDEX IF NOT EXISTS uq_snapshot_clan_date ON clan_ranking_snapshots (clan_tag, snapshot_date)"
-       )
+        )
 
         if not users_table:
             return

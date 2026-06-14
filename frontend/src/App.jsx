@@ -189,6 +189,7 @@ function App() {
       <main className="app-shell">
         {currentPage === 'dashboard' && (
           <Dashboard
+            token={token}
             data={dashboardData}
             error={error}
             isLoading={isLoading && !dashboardData}
@@ -226,7 +227,10 @@ function App() {
           <Profile
             token={token}
             onUnauthorized={handleLogout}
-            onDashboardInvalidate={() => loadAllData(true)}
+            onDashboardInvalidate={() => {
+              loadAllData(true)
+              loadRankings(true)
+            }}
           />
         )}
       </main>

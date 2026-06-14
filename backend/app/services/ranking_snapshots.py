@@ -80,10 +80,10 @@ def take_snapshot_for_clan(clan_tag: str, location_id: int, location_name: str |
         )
         db.add(snapshot)
         try:
-             db.commit()
+            db.commit()
         except IntegrityError:
-             db.rollback()
-             return False
+            db.rollback()
+            return False
         return True
     finally:
         db.close()

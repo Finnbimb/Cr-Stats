@@ -32,14 +32,20 @@ function Critical({ membersData, critical }) {
     }
     else {
         return (
-            <section className="panel page-stack">
+            <section className="panel critical-panel">
                 <h2>Kritische Mitglieder</h2>
-                <p>Es gibt {critical.length} {critical.length === 1 ? 'kritisches' : 'kritische'} {critical.length === 1 ? 'Mitglied' : 'Mitglieder'}.</p>
-                {critical.map(cr => (
-                    <div key={cr.tag}>
-                        {cr.name} ({cr.tag}) - zuletzt gesehen: {formatLastSeen(cr.last_seen)}
-                    </div>
-                ))}
+                <p className="critical-summary">
+                    Es gibt {critical.length} {critical.length === 1 ? 'kritisches' : 'kritische'} {critical.length === 1 ? 'Mitglied' : 'Mitglieder'}.
+                </p>
+                <div className="critical-list">
+                    {critical.map(cr => (
+                        <div className="critical-row" key={cr.tag}>
+                            <span className="critical-name">{cr.name}</span>
+                            <span className="critical-tag">{cr.tag}</span>
+                            <span className="critical-seen">{formatLastSeen(cr.last_seen)}</span>
+                        </div>
+                    ))}
+                </div>
             </section>
         )
     }
