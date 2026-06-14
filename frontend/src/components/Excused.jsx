@@ -4,10 +4,14 @@ import { addExcused } from "../services/api";
 function Excused({ token, members, onClose }) {
     const participants = Array.isArray(members) ? members : [];
 
+    const sortedParticipants = participants.slice().sort((a, b) => 
+        a.name.localeCompare(b.name)
+    );
+
     async function handleSubmit(event) {
         event.preventDefault();
         const player_tag= event.target.player_tag.value
-        const name= participants.find(p => p.tag === player_tag)?.name
+        const name= sortedParticipants.find(p => p.tag === player_tag)?.name
         const amount= Number(event.target.amount.value)
         const unit = event.target.unit.value
         const reason= event.target.reason.value;
@@ -43,14 +47,14 @@ function Excused({ token, members, onClose }) {
                     )}
                 </div>
 
-                <p className="excuse-count">{participants.length} Mitglieder verfügbar</p>
+                <p className="excuse-count">{sortedParticipants.length} Mitglieder verfügbar</p>
 
                 <form className="excuse-form" onSubmit={handleSubmit}>
                     <label className="form-field">
                         <span>Name des Mitglieds</span>
                         <select name="player_tag" required defaultValue="">
                             <option value="" disabled>Bitte wählen...</option>
-                            {participants.map((participant) => (
+                            {sortedParticipants.map((participant) => (
                                 <option key={participant.tag ?? participant.name} value={participant.tag}>
                                     {participant.name}
                                 </option>
