@@ -7,3 +7,4 @@ bot.log
 __pycache__/
 *.py[cod]
 frontend/dist/
+.DS_Store
