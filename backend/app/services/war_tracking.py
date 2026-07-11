@@ -74,7 +74,6 @@ def sync_war_data_once(clan_data: dict | None = None):
 
 async def poll_war_data_loop():
     while True:
-        print("running")
         try:
             sync_war_data_once()
         except Exception as exc:
