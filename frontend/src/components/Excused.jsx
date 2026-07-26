@@ -1,7 +1,7 @@
 import React from "react";
 import { addExcused } from "../services/api";
 
-function Excused({ token, members, onClose }) {
+function Excused({ token, members, onClose, onDashboardInvalidate }) {
     const participants = Array.isArray(members) ? members : [];
 
     const sortedParticipants = participants.slice().sort((a, b) => 
@@ -20,6 +20,7 @@ function Excused({ token, members, onClose }) {
 
         try{
             await addExcused(token, data)
+            onDashboardInvalidate()
             onClose()
         }
         catch (err) {

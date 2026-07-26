@@ -1,5 +1,7 @@
 import { useState, useMemo } from 'react'
 import RaceClansSidebar from '../components/RaceClansSidebar.jsx'
+import Excused from '../components/Excused.jsx'
+import ExcusedList from '../components/ExcusedList.jsx'
 
 const SORT_OPTIONS = [
   { value: 'decks_used', label: 'Gesamt gespielt' },
@@ -155,13 +157,15 @@ function WarHeader({ data }) {
   )
 }
 
-export default function War({ warData, participantsData, warLog, isLoading }) {
+export default function War({ warData, participantsData, warLog, isLoading, token, membersData, excused, onDashboardInvalidate }) {
   const [search, setSearch] = useState('')
   const [sortBy, setSortBy] = useState('decks_used')
   const [reversed, setReversed] = useState(false)
 
   const participants = participantsData?.participants ?? []
   const isTraining = (participantsData ?? warData)?.is_training ?? false
+
+  const [showExcuseForm, setShowExcuseForm] = useState(false)
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase()
@@ -183,6 +187,12 @@ export default function War({ warData, participantsData, warLog, isLoading }) {
       <div className="war-header-row">
         <RaceClansSidebar raceClans={participantsData?.race_clans} />
         <WarHeader data={participantsData ?? warData} />
+        <div className="excused">
+          <ExcusedList excused={excused} />
+          <button onClick={() => {if (!showExcuseForm) setShowExcuseForm(true); else setShowExcuseForm(false)}}>Abmeldung hinzufügen</button>
+      </div>
+      
+      {showExcuseForm && <Excused token={token} members={membersData} onClose={() => setShowExcuseForm(false)} onDashboardInvalidate={() => {onDashboardInvalidate()}} />}
       </div>
       <WeekProgress warData={participantsData ?? warData} warLog={warLog} />
 

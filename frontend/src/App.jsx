@@ -7,7 +7,7 @@ import Profile from './pages/Profile.jsx'
 import Rankings from './pages/Rankings.jsx'
 import War from './pages/War.jsx'
 import Topbar from './components/Topbar.jsx'
-import { loginUser, registerUser, getDashboard, getMembers, getWarPerformers, getWarParticipants, getRankingsHistory, getWarLog } from './services/api.js'
+import { loginUser, registerUser, getDashboard, getMembers, getWarPerformers, getWarParticipants, getRankingsHistory, getWarLog, getExcused } from './services/api.js'
 
 const POLL_INTERVAL = 5 * 60 * 1000
 const RANKINGS_POLL_INTERVAL = 30 * 60 * 1000
@@ -33,6 +33,7 @@ function App() {
 
   const [dashboardData, setDashboardData] = useState(null)
   const [membersData, setMembersData] = useState(null)
+  const [excused, setExcused] = useState(null)
   const [warData, setWarData] = useState(null)
   const [warParticipantsData, setWarParticipantsData] = useState(null)
   const [rankingsHistory, setRankingsHistory] = useState(null)
@@ -48,11 +49,12 @@ function App() {
     if (showLoading) setIsLoading(true)
     setError('')
     try {
-      const [dashResult, membersResult, warResult, warParticipantsResult] = await Promise.allSettled([
+      const [dashResult, membersResult, warResult, warParticipantsResult, excusedResult] = await Promise.allSettled([
         getDashboard(token),
         getMembers(token),
         getWarPerformers(token),
         getWarParticipants(token),
+        getExcused(token),
       ])
       if (dashResult.status === 'fulfilled') {
         setDashboardData(dashResult.value)
@@ -70,6 +72,9 @@ function App() {
       }
       if (warParticipantsResult.status === 'fulfilled') {
         setWarParticipantsData(warParticipantsResult.value)
+      }
+      if (excusedResult.status === 'fulfilled') {
+        setExcused(excusedResult.value)
       }
     } finally {
       if (showLoading) setIsLoading(false)
@@ -160,6 +165,7 @@ function App() {
     setRankingsHistory(null)
     setWarLog(null)
     navigateTo('login')
+    setExcused(null)
   }
 
   const avgTrophies = membersData?.length
@@ -198,6 +204,10 @@ function App() {
             warData={warData}
             warLog={warLog}
             membersData={membersData}
+            excused={excused}
+            onDashboardInvalidate= {() => {
+              loadAllData(true)
+            }}
           />
         )}
         {currentPage === 'members' && (
@@ -221,6 +231,12 @@ function App() {
             participantsData={warParticipantsData}
             warLog={warLog}
             isLoading={isLoading && !warParticipantsData}
+            token={token}
+            membersData={membersData}
+            excused={excused}
+            onDashboardInvalidate= {() => {
+              loadAllData(true)
+            }}
           />
         )}
         {currentPage === 'profile' && (

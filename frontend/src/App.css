@@ -805,19 +805,23 @@ textarea:focus {
 .war-header-row {
   display: grid;
   grid-template-columns: 1fr 2fr;
-  grid-template-areas: "ranking header";
+  grid-template-areas:
+    "ranking excused"
+    "ranking header";
   gap: 0.75rem;
   align-items: stretch;
 }
 
 .war-header-row > .war-race-clans { grid-area: ranking; }
 .war-header-row > .war-page-header { grid-area: header; }
+.war-header-row > .excused { grid-area: excused; align-self: start; }
 
 @media (max-width: 720px) {
   .war-header-row {
     grid-template-columns: 1fr;
     grid-template-areas:
       "ranking"
+      "excused"
       "header";
   }
 }
