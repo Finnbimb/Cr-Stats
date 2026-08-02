@@ -60,23 +60,29 @@ def take_snapshot_for_clan(clan_tag: str, location_id: int, location_name: str |
         war_entry = fetch_clan_in_ranking(location_id, "rankings/clanwars", clan_tag)
 
         clan_score = trophy_entry["clanScore"] if trophy_entry else None
-        clan_war_trophies = war_entry["clanWarTrophies"] if war_entry else None
+        clan_war_trophies = war_entry["clanScore"] if war_entry else None
 
         if clan_score is None or clan_war_trophies is None:
             try:
                 clan = fetch_clan_by_tag(clan_tag)
-                clan_score = clan_score or clan["clanScore"]
-                clan_war_trophies = clan_war_trophies or clan["clanWarTrophies"]
+                clan_war_trophies = clan_war_trophies or clan.get("clanWarTrophies")
+                clan_score = clan_score or clan.get("clanScore")
             except Exception:
                 pass
 
+        trophy_rank = trophy_entry["rank"] if trophy_entry else None
+        war_rank = war_entry["rank"] if war_entry else None
+
+        if trophy_rank is None and war_rank is None and clan_score is None and clan_war_trophies is None:
+            return False
+        
         snapshot = ClanRankingSnapshot(
             clan_tag=clan_tag,
             location_id=location_id,
             location_name=location_name,
             snapshot_date=date,
-            trophy_rank=trophy_entry["rank"] if trophy_entry else None,
-            war_rank=war_entry["rank"] if war_entry else None,
+            trophy_rank=trophy_rank,
+            war_rank=war_rank,
             clan_score=clan_score,
             clan_war_trophies=clan_war_trophies,
             captured_at=int(time()),
@@ -151,14 +157,16 @@ def take_snapshots_for_location(location_id: int):
                 continue
             trophy_entry = trophy_by_tag.get(tag)
             war_entry = war_by_tag.get(tag)
-            
+            trophy_rank = trophy_entry["rank"] if trophy_entry else None
+            war_rank = war_entry["rank"] if war_entry else None
+
             snapshot = ClanRankingSnapshot(
                 clan_tag=tag,
                 location_id=location_id,
                 location_name=location_name,
                 snapshot_date=date,
-                trophy_rank=trophy_entry["rank"] if trophy_entry else None,
-                war_rank=war_entry["rank"] if war_entry else None,
+                trophy_rank=trophy_rank,
+                war_rank=war_rank,
                 clan_score=trophy_entry["clanScore"] if trophy_entry else None,
                 clan_war_trophies=war_entry["clanScore"] if war_entry else None,
                 captured_at=int(time()),
