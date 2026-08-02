@@ -867,7 +867,7 @@ textarea:focus {
 }
 
 .war-race-clan:last-child {
-  border-bottom: 1px solid transparent;
+  border-bottom: 1px solid var(--color-brand);
 }
 
 .war-race-clan--own {
@@ -1029,7 +1029,8 @@ textarea:focus {
   border-color: var(--color-brand);
 }
 
-/* Teilnehmer-Tabelle */
+/* Teilnehmer-Tabelle: Ausrichtung/Farbe für Header UND Zellen (damit die
+   Spalten-Header über ihren Werten sitzen) */
 .war-participants-table .war-col-fame {
   text-align: right;
 }
@@ -1037,6 +1038,12 @@ textarea:focus {
 .war-participants-table .war-col-decks {
   text-align: center;
   color: var(--text-muted);
+}
+
+/* größere Schrift NUR für Datenzellen (td) — so nutzen alle Header einheitlich
+   .members-table th (0.68rem) und werden nicht von Spalten-Klassen überstimmt */
+.war-participants-table td.war-col-fame,
+.war-participants-table td.war-col-decks {
   font-size: 0.85rem;
 }
 

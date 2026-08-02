@@ -201,7 +201,7 @@ export default function War({ warData, participantsData, warLog, isLoading, toke
           <input
             className="war-search"
             type="text"
-            placeholder="Name suchen…"
+            placeholder="Suchen…"
             value={search}
             onChange={e => setSearch(e.target.value)}
           />
@@ -238,7 +238,7 @@ export default function War({ warData, participantsData, warLog, isLoading, toke
             <thead>
               <tr>
                 <th className="members-rank">#</th>
-                <th>Name</th>
+                <th className="war-header-name">Name</th>
                 <th className="war-col-fame">Fame</th>
                 <th className="war-col-decks">Heute</th>
                 <th className="war-col-decks">Gesamt (Kriegstage)</th>
